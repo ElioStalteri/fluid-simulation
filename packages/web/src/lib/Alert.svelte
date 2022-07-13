@@ -1,8 +1,14 @@
 <script lang="ts">
-  import { helloWorld } from 'vite-wasm-functions'
+  import { create_fluid } from "vite-wasm-functions";
+  let test = 10;
 </script>
 
-<button on:click={() => helloWorld()}>
+<button
+  on:click={() => {
+    test+=1;
+    create_fluid(test);
+  }}
+>
   Alert from Rust!
 </button>
 

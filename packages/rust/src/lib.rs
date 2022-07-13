@@ -1,5 +1,7 @@
+mod fluid;
 mod utils;
-
+use rust_decimal_macros::dec;
+use std::convert::TryInto;
 
 use wasm_bindgen::prelude::*;
 
@@ -10,7 +12,7 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
-extern {
+extern "C" {
     fn alert(s: String);
 
     #[wasm_bindgen(js_namespace = console)]
@@ -27,7 +29,7 @@ extern {
     fn log_many(a: &str, b: &str);
 }
 
-#[wasm_bindgen(js_name="start")]
+#[wasm_bindgen(js_name = "start")]
 pub fn start() {
     utils::set_panic_hook()
 }
@@ -38,20 +40,43 @@ extern "C" {
     pub type ArrayOfNumbers;
 }
 
-#[wasm_bindgen(js_name="addArray")]
+#[wasm_bindgen(js_name = "addArray")]
 pub fn add_array(arr: ArrayOfNumbers) -> u32 {
     let rust_arr: Vec<u32> = arr.into_serde().unwrap();
     let mut sum: u32 = 0;
     for element in rust_arr {
         sum = element + sum
     }
-    return sum
+    return sum;
 }
 
-#[wasm_bindgen(js_name="helloWorld")]
+#[wasm_bindgen(js_name = "helloWorld")]
 pub fn hello_world(name: Option<String>) {
     match name {
         Some(name) => alert(format!("Hello {}", name)),
-        None => alert(String::from("Hello world!"))
+        None => alert(String::from("Hello world!")),
     }
+}
+
+use lazy_static::lazy_static; // 1.4.0
+use std::sync::Mutex;
+
+lazy_static! {
+    static ref fluid_instance: Mutex<Vec<fluid::Fluid>> = Mutex::new(vec![]);
+}
+
+#[wasm_bindgen(js_name = "create_fluid")]
+pub fn create_fluid(size: Option<i32>) {
+    let mut tmp = fluid_instance.lock().unwrap();
+    if (tmp.len() > 0) {
+        tmp.remove(0);
+    }
+    tmp.push(fluid::Fluid::create(
+        size.unwrap_or(0),
+        dec!(0),
+        dec!(0),
+        dec!(0),
+    ));
+    log_u32(tmp.get(0).unwrap().size as u32);
+    log_u32(tmp.len() as u32);
 }
