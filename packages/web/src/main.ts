@@ -1,9 +1,10 @@
 import App from './App.svelte'
-import init from 'vite-wasm-functions'
+import init, { start } from 'vite-wasm-functions'
 
 const load = async () => {
   const startTime = performance.now()
   await init()
+  start()
   const endTime = performance.now()
   console.log(`Call to wasm init took ${endTime - startTime} milliseconds`)
 

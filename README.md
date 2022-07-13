@@ -1,3 +1,10 @@
+https://mikeash.com/pyblog/fluid-simulation-for-dummies.html
+
+
+
+
+
+
 # WASM (with Rust) + Vite + Svelte Monorepo
 ## Quick Start
 ### Unix
