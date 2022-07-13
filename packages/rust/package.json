@@ -1,0 +1,6 @@
+{
+  "name": "vite-wasm-functions",
+  "version": "0.1.0",
+  "main": "pkg/vite_wasm_functions.js",
+  "license": "MIT"
+}

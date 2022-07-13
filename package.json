@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "packages/rust/pkg",
+    "packages/rust",
     "packages/web"
   ],
   "scripts": {
