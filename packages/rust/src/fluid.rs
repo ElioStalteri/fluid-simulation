@@ -87,4 +87,9 @@ impl Fluid {
                 vecmath::vec2_neg(self.v_0[IX((self.size - 2), i, self.size)]);
         }
     }
+    fn diffuse(&mut self) {
+        let size = Decimal::try_new((self.size - 2).into(), u32::MAX).unwrap_or(dec!(0));
+        let a = self.dt * self.diff * size * size;
+        self.lin_solve(a, dec!(1) + dec!(6) * a);
+    }
 }
