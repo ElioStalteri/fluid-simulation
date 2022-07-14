@@ -78,7 +78,7 @@ impl Fluid {
         self.diffuse(false);
         // advect(0, density, s, Vx, Vy, Vz, dt, N);
     }
-    fn lin_solve(&mut self, check_bnb: bool, a: Decimal, c: Decimal) {
+    fn lin_solve(&mut self, check_bnd: bool, a: Decimal, c: Decimal) {
         let c_recip = dec!(1.0) / c;
         for _k in 0..self.iter {
             for js in 1..(self.size - 1) {
@@ -106,7 +106,7 @@ impl Fluid {
                     );
                 }
             }
-            if check_bnb {
+            if check_bnd {
                 self.set_bnd();
             }
         }
@@ -122,12 +122,12 @@ impl Fluid {
                 vecmath::vec2_neg(self.v_0[IX((self.size - 2), i, self.size)]);
         }
     }
-    fn diffuse(&mut self, check_bnb: bool) {
+    fn diffuse(&mut self, check_bnd: bool) {
         let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(8888));
         log("convert size to decimal if 9999 or 8888 it didnt work!!");
         log_u32(size.to_u32().unwrap_or(9999));
         let a = self.dt * self.diff * size * size;
         let c = dec!(1) + dec!(6) * a;
-        self.lin_solve(check_bnb, a, c);
+        self.lin_solve(check_bnd, a, c);
     }
 }
