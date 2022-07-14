@@ -113,7 +113,7 @@ impl Fluid {
     }
     fn set_bnd(&mut self) {
         // loop all borders and negate the array
-        for i in 0..(self.size - 1) {
+        for i in 1..(self.size - 1) {
             self.vel_0[ix(i, 0, self.size)] = vecmath::vec2_neg(self.vel_0[ix(i, 1, self.size)]);
             self.vel_0[ix(i, (self.size - 1), self.size)] =
                 vecmath::vec2_neg(self.vel_0[ix(i, (self.size - 2), self.size)]);
@@ -121,6 +121,17 @@ impl Fluid {
             self.vel_0[ix((self.size - 1), i, self.size)] =
                 vecmath::vec2_neg(self.vel_0[ix((self.size - 2), i, self.size)]);
         }
+        let len1 = (self.vel_0[ix(0, 0, self.size)][0].powu(2) + self.vel_0[ix(0, 0, self.size)][1].powu(2)).sqrt().unwrap_or(dec!(1));
+        self.vel_0[ix(0, 0, self.size)] = vecmath::vec2_scale([dec!( 1),dec!( 1)],len1);
+
+        let len2 = (self.vel_0[ix(0, self.size-1, self.size)][0].powu(2) + self.vel_0[ix(0, self.size-1, self.size)][1].powu(2)).sqrt().unwrap_or(dec!(1));
+        self.vel_0[ix(0, self.size-1, self.size)] = vecmath::vec2_scale([dec!( 1),dec!(-1)],len2);
+
+        let len3 = (self.vel_0[ix(self.size-1, 0, self.size)][0].powu(2) + self.vel_0[ix(self.size-1, 0, self.size)][1].powu(2)).sqrt().unwrap_or(dec!(1));
+        self.vel_0[ix(self.size-1, 0, self.size)] = vecmath::vec2_scale([dec!(-1),dec!( 1)],len3);
+
+        let len4 = (self.vel_0[ix(self.size-1, self.size-1, self.size)][0].powu(2) + self.vel_0[ix(self.size-1, self.size-1, self.size)][1].powu(2)).sqrt().unwrap_or(dec!(1));
+        self.vel_0[ix(self.size-1, self.size-1, self.size)] = vecmath::vec2_scale([dec!(-1),dec!(-1)],len4);
     }
     fn diffuse(&mut self, check_bnd: bool) {
         let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(8888));
