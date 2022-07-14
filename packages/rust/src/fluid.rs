@@ -16,7 +16,7 @@ fn lin_solve(
     n: i32,
     size: i32,
 ) {
-    let cRecip = dec!(1.0) / c;
+    let c_recip = dec!(1.0) / c;
     for _k in 0..iter {
         for js in 1..(n - 1) {
             for is in 1..(n - 1) {
@@ -33,7 +33,7 @@ fn lin_solve(
                             a,
                         ),
                     ),
-                    cRecip,
+                    c_recip,
                 );
             }
         }

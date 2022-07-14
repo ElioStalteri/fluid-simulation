@@ -62,13 +62,13 @@ use lazy_static::lazy_static; // 1.4.0
 use std::sync::Mutex;
 
 lazy_static! {
-    static ref fluid_instance: Mutex<Vec<fluid::Fluid>> = Mutex::new(vec![]);
+    static ref FLUID_INSTANCE: Mutex<Vec<fluid::Fluid>> = Mutex::new(vec![]);
 }
 
 #[wasm_bindgen(js_name = "create_fluid")]
 pub fn create_fluid(size: Option<i32>) {
-    let mut tmp = fluid_instance.lock().unwrap();
-    if (tmp.len() > 0) {
+    let mut tmp = FLUID_INSTANCE.lock().unwrap();
+    if tmp.len() > 0 {
         tmp.remove(0);
     }
     tmp.push(fluid::Fluid::create(
