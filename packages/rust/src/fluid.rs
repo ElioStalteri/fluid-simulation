@@ -120,17 +120,32 @@ impl Fluid {
             self.vel_0[ix((self.size - 1), i, self.size)] =
                 vecmath::vec2_neg(self.vel_0[ix((self.size - 2), i, self.size)]);
         }
-        let len1 = (self.vel_0[ix(0, 0, self.size)][0].powu(2) + self.vel_0[ix(0, 0, self.size)][1].powu(2)).sqrt().unwrap_or(dec!(1));
-        self.vel_0[ix(0, 0, self.size)] = vecmath::vec2_scale([dec!( 1),dec!( 1)],len1);
+        let len1 = (self.vel_0[ix(0, 0, self.size)][0].powu(2)
+            + self.vel_0[ix(0, 0, self.size)][1].powu(2))
+        .sqrt()
+        .unwrap_or(dec!(1));
+        self.vel_0[ix(0, 0, self.size)] = vecmath::vec2_scale([dec!(1), dec!(1)], len1);
 
-        let len2 = (self.vel_0[ix(0, self.size-1, self.size)][0].powu(2) + self.vel_0[ix(0, self.size-1, self.size)][1].powu(2)).sqrt().unwrap_or(dec!(1));
-        self.vel_0[ix(0, self.size-1, self.size)] = vecmath::vec2_scale([dec!( 1),dec!(-1)],len2);
+        let len2 = (self.vel_0[ix(0, self.size - 1, self.size)][0].powu(2)
+            + self.vel_0[ix(0, self.size - 1, self.size)][1].powu(2))
+        .sqrt()
+        .unwrap_or(dec!(1));
+        self.vel_0[ix(0, self.size - 1, self.size)] =
+            vecmath::vec2_scale([dec!(1), dec!(-1)], len2);
 
-        let len3 = (self.vel_0[ix(self.size-1, 0, self.size)][0].powu(2) + self.vel_0[ix(self.size-1, 0, self.size)][1].powu(2)).sqrt().unwrap_or(dec!(1));
-        self.vel_0[ix(self.size-1, 0, self.size)] = vecmath::vec2_scale([dec!(-1),dec!( 1)],len3);
+        let len3 = (self.vel_0[ix(self.size - 1, 0, self.size)][0].powu(2)
+            + self.vel_0[ix(self.size - 1, 0, self.size)][1].powu(2))
+        .sqrt()
+        .unwrap_or(dec!(1));
+        self.vel_0[ix(self.size - 1, 0, self.size)] =
+            vecmath::vec2_scale([dec!(-1), dec!(1)], len3);
 
-        let len4 = (self.vel_0[ix(self.size-1, self.size-1, self.size)][0].powu(2) + self.vel_0[ix(self.size-1, self.size-1, self.size)][1].powu(2)).sqrt().unwrap_or(dec!(1));
-        self.vel_0[ix(self.size-1, self.size-1, self.size)] = vecmath::vec2_scale([dec!(-1),dec!(-1)],len4);
+        let len4 = (self.vel_0[ix(self.size - 1, self.size - 1, self.size)][0].powu(2)
+            + self.vel_0[ix(self.size - 1, self.size - 1, self.size)][1].powu(2))
+        .sqrt()
+        .unwrap_or(dec!(1));
+        self.vel_0[ix(self.size - 1, self.size - 1, self.size)] =
+            vecmath::vec2_scale([dec!(-1), dec!(-1)], len4);
     }
     fn diffuse(&mut self, check_bnd: bool) {
         let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(8888));
@@ -209,8 +224,9 @@ impl Fluid {
         // int b, float[] d, float[] d0,  float[] velocX, float[] velocY float dt, int N
     ) {
         // float i0, i1, j0, j1;
+        let size = Decimal::from_i32((self.size).into()).unwrap_or(dec!(1));
 
-        // float dtx = dt * (N - 2);
+        let dt_ = self.dt * (size - dec!(2));
         // float dty = dt * (N - 2);
 
         // float s0, s1, t0, t1;
@@ -220,43 +236,66 @@ impl Fluid {
         // float ifloat, jfloat;
         // int i, j;
 
-        //     for(j = 1, jfloat = 1; j < N - 1; j++, jfloat++) {
-        //         for(i = 1, ifloat = 1; i < N - 1; i++, ifloat++) {
-        //             tmp1 = dtx * velocX[IX(i, j)];
-        //             tmp2 = dty * velocY[IX(i, j)];
-        //             x    = ifloat - tmp1;
-        //             y    = jfloat - tmp2;
+        for j in 1..(self.size - 1) {
+            for i in 1..(self.size - 1) {
+                let tmp = vecmath::vec2_scale(self.vel_0[ix(i, j, self.size)], dt_);
+                // tmp1 = dtx * velocX[IX(i, j)];
+                //             tmp2 = dty * velocY[IX(i, j)];
+                let mut x = Decimal::from_i32(i).unwrap() - tmp[0];
+                let mut y = Decimal::from_i32(j).unwrap() - tmp[1];
 
-        //             if(x < 0.5f) x = 0.5f;
-        //             if(x > Nfloat + 0.5f) x = Nfloat + 0.5f;
-        //             i0 = floorf(x);
-        //             i1 = i0 + 1.0f;
-        //             if(y < 0.5f) y = 0.5f;
-        //             if(y > Nfloat + 0.5f) y = Nfloat + 0.5f;
-        //             j0 = floorf(y);
-        //             j1 = j0 + 1.0f;
-        //
+                if x < dec!(0.5) {
+                    x = dec!(0.5);
+                }
+                if x > size + dec!(0.5) {
+                    x = size + dec!(0.5);
+                }
+                let i0 = x;
+                let i1 = i0 + dec!(1);
+                if y < dec!(0.5) {
+                    y = dec!(0.5);
+                }
+                if y > size + dec!(0.5) {
+                    y = size + dec!(0.5);
+                }
+                let j0 = y;
+                let j1 = j0 + dec!(1.0);
 
-        //             s1 = x - i0;
-        //             s0 = 1.0f - s1;
-        //             t1 = y - j0;
-        //             t0 = 1.0f - t1;
-        //
+                let s1 = x - i0;
+                let s0 = dec!(1) - s1;
+                let t1 = y - j0;
+                let t0 = dec!(1) - t1;
 
-        //             int i0i = i0;
-        //             int i1i = i1;
-        //             int j0i = j0;
-        //             int j1i = j1;
-        //
+                let i0i = i0.to_i32();
+                let i1i = i1.to_i32();
+                let j0i = j0.to_i32();
+                let j1i = j1.to_i32();
+                //
 
-        //             d[IX(i, j)] =
-        //                  s0 * (t0 * d0[IX(i0i,j0i)])
-        //                      +(t1 * d0[IX(i0i,j1i)])
-        //                  +s1 * (t0 * d0[IX(i1i,j0i)])
-        //                      +(t1 * d0[IX(i1i,j1i)])
+                self.vel[ix(i, j, self.size)] = vec2_add(
+                    vec2_scale(
+                        vec2_add(
+                            vec2_scale(self.vel_0[ix(i0i, j0i, self.size)], t0),
+                            vec2_scale(self.vel_0[ix(i0i, j1i, self.size)], t1),
+                        ),
+                        s0,
+                    ),
+                    vec2_scale(
+                        vec2_add(
+                            vec2_scale(self.vel_0[ix(i1i, j0i, self.size)], t0),
+                            vec2_scale(self.vel_0[ix(i1i, j1i, self.size)], t1),
+                        ),
+                        s1,
+                    ),
+                );
 
-        //         }
-        //     }
+                // self.vel[ix(i, j, self.size)] = s0
+                // ( self.vel_0[ix(i0i, j0i, self.size)]*t0
+                //         +  self.vel_0[ix(i0i, j1i, self.size)]*t1 ) * s0
+                //     +   (  self.vel_0[ix(i1i, j0i, self.size)]*t0
+                //         +   self.vel_0[ix(i1i, j1i, self.size)]*t1) * s1;
+            }
+        }
         // set_bnd(b, d, N);
     }
 }
