@@ -266,24 +266,24 @@ impl Fluid {
                 let t1 = y - j0;
                 let t0 = dec!(1) - t1;
 
-                let i0i = i0.to_i32();
-                let i1i = i1.to_i32();
-                let j0i = j0.to_i32();
-                let j1i = j1.to_i32();
+                let i0i = i0.to_i32().unwrap();
+                let i1i = i1.to_i32().unwrap();
+                let j0i = j0.to_i32().unwrap();
+                let j1i = j1.to_i32().unwrap();
                 //
 
-                self.vel[ix(i, j, self.size)] = vec2_add(
-                    vec2_scale(
-                        vec2_add(
-                            vec2_scale(self.vel_0[ix(i0i, j0i, self.size)], t0),
-                            vec2_scale(self.vel_0[ix(i0i, j1i, self.size)], t1),
+                self.vel[ix(i, j, self.size)] = vecmath::vec2_add(
+                    vecmath::vec2_scale(
+                        vecmath::vec2_add(
+                            vecmath::vec2_scale(self.vel_0[ix(i0i, j0i, self.size)], t0),
+                            vecmath::vec2_scale(self.vel_0[ix(i0i, j1i, self.size)], t1),
                         ),
                         s0,
                     ),
-                    vec2_scale(
-                        vec2_add(
-                            vec2_scale(self.vel_0[ix(i1i, j0i, self.size)], t0),
-                            vec2_scale(self.vel_0[ix(i1i, j1i, self.size)], t1),
+                    vecmath::vec2_scale(
+                        vecmath::vec2_add(
+                            vecmath::vec2_scale(self.vel_0[ix(i1i, j0i, self.size)], t0),
+                            vecmath::vec2_scale(self.vel_0[ix(i1i, j1i, self.size)], t1),
                         ),
                         s1,
                     ),
@@ -296,6 +296,6 @@ impl Fluid {
                 //         +   self.vel_0[ix(i1i, j1i, self.size)]*t1) * s1;
             }
         }
-        // set_bnd(b, d, N);
+        self.set_bnd();
     }
 }
