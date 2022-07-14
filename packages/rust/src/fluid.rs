@@ -7,7 +7,6 @@ fn IX(x: i32, y: i32, size: i32) -> usize {
     (x + y * size) as usize
 }
 
-
 pub struct Fluid {
     pub size: i32,
     pub iter: i32,
@@ -21,7 +20,13 @@ pub struct Fluid {
 }
 
 impl Fluid {
-    pub fn create(size: i32, diffusion: Decimal, viscosity: Decimal, dt: Decimal,iter:i32) -> Fluid {
+    pub fn create(
+        size: i32,
+        diffusion: Decimal,
+        viscosity: Decimal,
+        dt: Decimal,
+        iter: i32,
+    ) -> Fluid {
         Self {
             size,
             iter,
@@ -40,11 +45,7 @@ impl Fluid {
     pub fn add_valocity(&mut self, x: i32, y: i32, v: vecmath::Vector2<Decimal>) {
         self.v[IX(x, y, self.size)] = vecmath::vec2_add(self.v[IX(x, y, self.size)], v);
     }
-    fn lin_solve(
-        &mut self,
-        a: Decimal,
-        c: Decimal,
-    ) {
+    fn lin_solve(&mut self, a: Decimal, c: Decimal) {
         let c_recip = dec!(1.0) / c;
         for _k in 0..self.iter {
             for js in 1..(self.size - 1) {
@@ -56,8 +57,14 @@ impl Fluid {
                             self.v[IX(i, j, self.size)],
                             vecmath::vec2_scale(
                                 vecmath::vec2_add(
-                                    vecmath::vec2_add(self.v_0[IX(i + 1, j, self.size)], self.v_0[IX(i - 1, j, self.size)]),
-                                    vecmath::vec2_add(self.v_0[IX(i, j + 1, self.size)], self.v_0[IX(i, j - 1, self.size)]),
+                                    vecmath::vec2_add(
+                                        self.v_0[IX(i + 1, j, self.size)],
+                                        self.v_0[IX(i - 1, j, self.size)],
+                                    ),
+                                    vecmath::vec2_add(
+                                        self.v_0[IX(i, j + 1, self.size)],
+                                        self.v_0[IX(i, j - 1, self.size)],
+                                    ),
                                 ),
                                 a,
                             ),
@@ -66,8 +73,18 @@ impl Fluid {
                     );
                 }
             }
-            // set_bnd(V_0, N);
+            self.set_bnd();
         }
     }
-    
+    fn set_bnd(&mut self) {
+        // loop all borders and negate the array
+        for i in 0..(self.size - 1) {
+            self.v_0[IX(i, 0, self.size)] = vecmath::vec2_neg(self.v_0[IX(i, 1, self.size)]);
+            self.v_0[IX(i, (self.size - 1), self.size)] =
+                vecmath::vec2_neg(self.v_0[IX(i, (self.size - 2), self.size)]);
+            self.v_0[IX(0, i, self.size)] = vecmath::vec2_neg(self.v_0[IX(1, i, self.size)]);
+            self.v_0[IX((self.size - 1), i, self.size)] =
+                vecmath::vec2_neg(self.v_0[IX((self.size - 2), i, self.size)]);
+        }
+    }
 }
