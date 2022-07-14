@@ -32,7 +32,7 @@ pub struct Fluid {
     pub dt: Decimal,
     pub diff: Decimal,
     pub visc: Decimal,
-    pub s_: Vec<Decimal>,
+    pub density_0: Vec<Decimal>,
     pub density: Vec<Decimal>,
     pub vel: Vec<vecmath::Vector2<Decimal>>,
     pub vel_0: Vec<vecmath::Vector2<Decimal>>,
@@ -52,7 +52,7 @@ impl Fluid {
             diff: diffusion,
             visc: viscosity,
             dt,
-            s_: vec![dec!(0); (size * size).try_into().unwrap()],
+            density_0: vec![dec!(0); (size * size).try_into().unwrap()],
             density: vec![dec!(0); (size * size).try_into().unwrap()],
             vel: vec![[dec!(0); 2]; (size * size).try_into().unwrap()],
             vel_0: vec![[dec!(0); 2]; (size * size).try_into().unwrap()],
@@ -69,14 +69,14 @@ impl Fluid {
 
         self.project();
 
-        // advect_velocity(1, Vx, Vx0, Vx0, Vy0, dt, N);
-        // advect_velocity(2, Vy, Vy0, Vx0, Vy0, dt, N);
+        self.advect_velocity();
 
         self.project_inverse();
 
         self.diffuse(false);
-        // advect_density(0, density, s, Vx, Vy, dt, N);
+        self.advect_density();
     }
+    // fn lin_solve_density
     fn lin_solve(&mut self, check_bnd: bool, a: Decimal, c: Decimal) {
         let c_recip = dec!(1.0) / c;
         for _k in 0..self.iter {
@@ -147,13 +147,17 @@ impl Fluid {
         self.vel_0[ix(self.size - 1, self.size - 1, self.size)] =
             vecmath::vec2_scale([dec!(-1), dec!(-1)], len4);
     }
-    fn diffuse(&mut self, check_bnd: bool) {
+    fn diffuse(&mut self, velocity: bool) {
         let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(8888));
         log("convert size to decimal if 9999 or 8888 it didnt work!!");
         log_u32(size.to_u32().unwrap_or(9999));
         let a = self.dt * self.diff * size * size;
         let c = dec!(1) + dec!(6) * a;
-        self.lin_solve(check_bnd, a, c);
+        if velocity {
+            self.lin_solve(velocity, a, c);
+        } else {
+            // self.lin_solve_density(velocity, a, c);
+        }
     }
     fn project(&mut self) {
         let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(1));
@@ -218,29 +222,15 @@ impl Fluid {
         }
         self.set_bnd();
     }
-    // fn advect_density
-    fn advect_velocity(
-        &mut self,
-        // int b, float[] d, float[] d0,  float[] velocX, float[] velocY float dt, int N
-    ) {
-        // float i0, i1, j0, j1;
+    fn advect_density(&mut self) {
         let size = Decimal::from_i32((self.size).into()).unwrap_or(dec!(1));
 
         let dt_ = self.dt * (size - dec!(2));
-        // float dty = dt * (N - 2);
-
-        // float s0, s1, t0, t1;
-        // float tmp1, tmp2, x, y;
-
-        // float Nfloat = N;
-        // float ifloat, jfloat;
-        // int i, j;
 
         for j in 1..(self.size - 1) {
             for i in 1..(self.size - 1) {
                 let tmp = vecmath::vec2_scale(self.vel_0[ix(i, j, self.size)], dt_);
-                // tmp1 = dtx * velocX[IX(i, j)];
-                //             tmp2 = dty * velocY[IX(i, j)];
+
                 let mut x = Decimal::from_i32(i).unwrap() - tmp[0];
                 let mut y = Decimal::from_i32(j).unwrap() - tmp[1];
 
@@ -270,7 +260,55 @@ impl Fluid {
                 let i1i = i1.to_i32().unwrap();
                 let j0i = j0.to_i32().unwrap();
                 let j1i = j1.to_i32().unwrap();
-                //
+
+                self.density[ix(i, j, self.size)] = (self.density_0[ix(i0i, j0i, self.size)] * t0
+                    + self.density_0[ix(i0i, j1i, self.size)] * t1)
+                    * s0
+                    + (self.density_0[ix(i1i, j0i, self.size)] * t0
+                        + self.density_0[ix(i1i, j1i, self.size)] * t1)
+                        * s1;
+            }
+        }
+        self.set_bnd();
+    }
+    fn advect_velocity(&mut self) {
+        let size = Decimal::from_i32((self.size).into()).unwrap_or(dec!(1));
+
+        let dt_ = self.dt * (size - dec!(2));
+
+        for j in 1..(self.size - 1) {
+            for i in 1..(self.size - 1) {
+                let tmp = vecmath::vec2_scale(self.vel_0[ix(i, j, self.size)], dt_);
+
+                let mut x = Decimal::from_i32(i).unwrap() - tmp[0];
+                let mut y = Decimal::from_i32(j).unwrap() - tmp[1];
+
+                if x < dec!(0.5) {
+                    x = dec!(0.5);
+                }
+                if x > size + dec!(0.5) {
+                    x = size + dec!(0.5);
+                }
+                let i0 = x;
+                let i1 = i0 + dec!(1);
+                if y < dec!(0.5) {
+                    y = dec!(0.5);
+                }
+                if y > size + dec!(0.5) {
+                    y = size + dec!(0.5);
+                }
+                let j0 = y;
+                let j1 = j0 + dec!(1.0);
+
+                let s1 = x - i0;
+                let s0 = dec!(1) - s1;
+                let t1 = y - j0;
+                let t0 = dec!(1) - t1;
+
+                let i0i = i0.to_i32().unwrap();
+                let i1i = i1.to_i32().unwrap();
+                let j0i = j0.to_i32().unwrap();
+                let j1i = j1.to_i32().unwrap();
 
                 self.vel[ix(i, j, self.size)] = vecmath::vec2_add(
                     vecmath::vec2_scale(
@@ -288,12 +326,6 @@ impl Fluid {
                         s1,
                     ),
                 );
-
-                // self.vel[ix(i, j, self.size)] = s0
-                // ( self.vel_0[ix(i0i, j0i, self.size)]*t0
-                //         +  self.vel_0[ix(i0i, j1i, self.size)]*t1 ) * s0
-                //     +   (  self.vel_0[ix(i1i, j0i, self.size)]*t0
-                //         +   self.vel_0[ix(i1i, j1i, self.size)]*t1) * s1;
             }
         }
         self.set_bnd();
