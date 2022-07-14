@@ -19,6 +19,8 @@
     "vite": "^2.6.4"
   },
   "dependencies": {
+    "p5": "^1.4.1",
+    "p5-svelte": "^3.1.2",
     "vite-wasm-functions": "^0.1.0"
   }
 }

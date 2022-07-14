@@ -1,75 +1,50 @@
-<script lang="ts">
-  import logo from "./assets/svelte.png";
-  import Alert from "./lib/Alert.svelte";
-  import Counter from "./lib/Counter.svelte";
+<script>
+  import P5 from "p5-svelte";
+  import {
+    create_fluid,
+    fluid_step,
+    fluid_add_density,
+  } from "vite-wasm-functions";
+
+  let square_side = 255;
+  let height = 55;
+
+  const sketch = (p5) => {
+    function convertSize(x, y) {
+      return [
+        Math.round((x / p5.width) * square_side),
+        Math.round((y / p5.height) * square_side),
+      ];
+    }
+
+    p5.mouseDragged = () => {
+      console.log(...convertSize(p5.mouseX, p5.mouseY));
+      // fluid_add_density
+    };
+
+    p5.setup = () => {
+      create_fluid(square_side);
+      p5.createCanvas(p5.windowWidth - 50, p5.windowHeight - 50);
+    };
+
+    p5.draw = () => {
+      fluid_step();
+      p5.background(0);
+      p5.noLoop();
+    };
+  };
 </script>
 
-<main>
-  <img src={logo} alt="Svelte Logo" />
-  <h1>Hello Vite+Rust!</h1>
+<!-- <label>
+  Width
+  <input type="range" bind:value={width} min="100" max="1000" step="0.01" />
+  {width}
+</label>
 
-  <div>
-    <Counter />
-  </div>
-  <div class="alert">
-    <Alert />
-  </div>
+<label>
+  Height
+  <input type="range" bind:value={height} min="100" max="1000" step="0.01" />
+  {height}
+</label> -->
 
-  <p>
-    Visit <a href="https://svelte.dev">svelte.dev</a> to learn how to build Svelte
-    apps.
-  </p>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme">SvelteKit</a> for
-    the officially supported framework, also powered by Vite!
-  </p>
-</main>
-
-<style>
-  :root {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  }
-
-  main {
-    text-align: center;
-    padding: 1em;
-    margin: 0 auto;
-  }
-
-  img {
-    height: 16rem;
-    width: 16rem;
-  }
-
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 4rem;
-    font-weight: 100;
-    line-height: 1.1;
-    margin: 2rem auto;
-    max-width: 14rem;
-  }
-
-  p {
-    max-width: 14rem;
-    margin: 1rem auto;
-    line-height: 1.35;
-  }
-
-  @media (min-width: 480px) {
-    h1 {
-      max-width: none;
-    }
-
-    p {
-      max-width: none;
-    }
-  }
-
-  .alert {
-    margin-top: 30px;
-  }
-</style>
+<P5 {sketch} />
