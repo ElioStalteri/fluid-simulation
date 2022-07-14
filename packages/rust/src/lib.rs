@@ -1,5 +1,6 @@
 mod fluid;
 mod utils;
+use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use std::convert::TryInto;
 
@@ -78,6 +79,12 @@ pub fn create_fluid(size: Option<i32>) {
         dec!(0),
         4,
     ));
+    log("initial creation log");
     log_u32(tmp.get(0).unwrap().size as u32);
     log_u32(tmp.len() as u32);
+    let tmp1 = Decimal::from_i32((tmp.get(0).unwrap().size - 2).into()).unwrap_or(dec!(8888));
+    log_u32(tmp1.to_u32().unwrap_or(9999));
+    log("finish initial creation log");
+
+
 }

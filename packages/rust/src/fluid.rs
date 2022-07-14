@@ -2,6 +2,26 @@ extern crate vecmath;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use std::convert::TryInto;
+use wasm_bindgen::prelude::*;
+
+
+#[wasm_bindgen]
+extern "C" {
+    fn alert(s: String);
+
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+
+    // The `console.log` is quite polymorphic, so we can bind it with multiple
+    // signatures. Note that we need to use `js_name` to ensure we always call
+    // `log` in JS.
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_u32(a: u32);
+
+    // Multiple arguments too!
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_many(a: &str, b: &str);
+}
 
 fn IX(x: i32, y: i32, size: i32) -> usize {
     (x + y * size) as usize
@@ -88,7 +108,9 @@ impl Fluid {
         }
     }
     fn diffuse(&mut self) {
-        let size = Decimal::try_new((self.size - 2).into(), u32::MAX).unwrap_or(dec!(0));
+        let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(0));
+        log("convert size to decimal if 9999 it didnt work!!");
+        log_u32(size.to_u32().unwrap_or(9999));
         let a = self.dt * self.diff * size * size;
         let c = dec!(1) + dec!(6) * a;
         self.lin_solve(a, c);
