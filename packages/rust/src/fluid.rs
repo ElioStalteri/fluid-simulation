@@ -4,7 +4,6 @@ use rust_decimal_macros::dec;
 use std::convert::TryInto;
 use wasm_bindgen::prelude::*;
 
-
 #[wasm_bindgen]
 extern "C" {
     fn alert(s: String);
@@ -65,7 +64,21 @@ impl Fluid {
     pub fn add_valocity(&mut self, x: i32, y: i32, v: vecmath::Vector2<Decimal>) {
         self.v[IX(x, y, self.size)] = vecmath::vec2_add(self.v[IX(x, y, self.size)], v);
     }
-    fn lin_solve(&mut self, a: Decimal, c: Decimal) {
+    pub fn Step(&mut self) {
+        self.diffuse(true);
+
+        // project(Vx0, Vy0, Vz0, Vx, Vy, 4, N);
+
+        // advect(1, Vx, Vx0, Vx0, Vy0, Vz0, dt, N);
+        // advect(2, Vy, Vy0, Vx0, Vy0, Vz0, dt, N);
+        // advect(3, Vz, Vz0, Vx0, Vy0, Vz0, dt, N);
+
+        // project(Vx, Vy, Vz, Vx0, Vy0, 4, N);
+
+        self.diffuse(false);
+        // advect(0, density, s, Vx, Vy, Vz, dt, N);
+    }
+    fn lin_solve(&mut self, check_bnb: bool, a: Decimal, c: Decimal) {
         let c_recip = dec!(1.0) / c;
         for _k in 0..self.iter {
             for js in 1..(self.size - 1) {
@@ -93,7 +106,9 @@ impl Fluid {
                     );
                 }
             }
-            self.set_bnd();
+            if check_bnb {
+                self.set_bnd();
+            }
         }
     }
     fn set_bnd(&mut self) {
@@ -107,12 +122,12 @@ impl Fluid {
                 vecmath::vec2_neg(self.v_0[IX((self.size - 2), i, self.size)]);
         }
     }
-    fn diffuse(&mut self) {
+    fn diffuse(&mut self, check_bnb: bool) {
         let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(8888));
         log("convert size to decimal if 9999 or 8888 it didnt work!!");
         log_u32(size.to_u32().unwrap_or(9999));
         let a = self.dt * self.diff * size * size;
         let c = dec!(1) + dec!(6) * a;
-        self.lin_solve(a, c);
+        self.lin_solve(check_bnb, a, c);
     }
 }
