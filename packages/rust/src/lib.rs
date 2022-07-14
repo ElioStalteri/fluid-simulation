@@ -92,3 +92,12 @@ pub fn fluid_add_density(x: Option<i32>,y: Option<i32>,amount: Option<i32>) {
     let mut tmp = FLUID_INSTANCE.lock().unwrap();
     tmp.add_density(x.unwrap(),y.unwrap(),Decimal::from_i32(amount.unwrap()).unwrap());
 }
+
+#[wasm_bindgen(js_name = "fluid_get_density")]
+pub fn fluid_get_density(x: Option<i32>,y: Option<i32>) -> Vec<f64> {
+    let mut tmp = FLUID_INSTANCE.lock().unwrap();
+    return tmp.density.iter().map(|v| v.to_f64().unwrap()).collect();
+    // get_density(x.unwrap(),y.unwrap()).to_f64().unwrap()
+}
+
+

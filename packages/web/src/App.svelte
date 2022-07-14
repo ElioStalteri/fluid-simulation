@@ -4,6 +4,7 @@
     create_fluid,
     fluid_step,
     fluid_add_density,
+    fluid_get_density,
   } from "vite-wasm-functions";
 
   let square_side = 255;
@@ -18,18 +19,37 @@
     }
 
     p5.mouseDragged = () => {
-      console.log(...convertSize(p5.mouseX, p5.mouseY));
-      // fluid_add_density
+      console.log(
+        ...convertSize(
+          p5.constrain(p5.mouseX, 0, square_side),
+          p5.constrain(p5.mouseY, 0, square_side)
+        )
+      );
+      fluid_add_density(
+        ...convertSize(
+          p5.constrain(p5.mouseX, 0, square_side),
+          p5.constrain(p5.mouseY, 0, square_side)
+        ),
+        10
+      );
+    };
+
+    p5.mouseClicked = () => {
+      let tmp = fluid_get_density()
+      tmp.forEach(d=>d)
+      console.log(tmp);
     };
 
     p5.setup = () => {
-      create_fluid(square_side);
+      create_fluid(square_side)
       p5.createCanvas(p5.windowWidth - 50, p5.windowHeight - 50);
+      p5.frameRate(5);
     };
 
     p5.draw = () => {
       fluid_step();
       p5.background(0);
+
       p5.noLoop();
     };
   };
