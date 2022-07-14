@@ -195,30 +195,26 @@ impl Fluid {
     }
     fn advect(
         &mut self,
-        // int b, float *d, float *d0,  float *velocX, float *velocY, float *velocZ, float dt, int N
+        // int b, float[] d, float[] d0,  float[] velocX, float[] velocY float dt, int N
     ) {
-        // float i0, i1, j0, j1, k0, k1;
+        // float i0, i1, j0, j1;
 
         // float dtx = dt * (N - 2);
         // float dty = dt * (N - 2);
-        // float dtz = dt * (N - 2);
 
-        // float s0, s1, t0, t1, u0, u1;
-        // float tmp1, tmp2, tmp3, x, y, z;
+        // float s0, s1, t0, t1;
+        // float tmp1, tmp2, x, y;
 
         // float Nfloat = N;
-        // float ifloat, jfloat, kfloat;
-        // int i, j, k;
+        // float ifloat, jfloat;
+        // int i, j;
 
-        // for(k = 1, kfloat = 1; k < N - 1; k++, kfloat++) {
         //     for(j = 1, jfloat = 1; j < N - 1; j++, jfloat++) {
         //         for(i = 1, ifloat = 1; i < N - 1; i++, ifloat++) {
-        //             tmp1 = dtx * velocX[IX(i, j, k)];
-        //             tmp2 = dty * velocY[IX(i, j, k)];
-        //             tmp3 = dtz * velocZ[IX(i, j, k)];
+        //             tmp1 = dtx * velocX[IX(i, j)];
+        //             tmp2 = dty * velocY[IX(i, j)];
         //             x    = ifloat - tmp1;
         //             y    = jfloat - tmp2;
-        //             z    = kfloat - tmp3;
 
         //             if(x < 0.5f) x = 0.5f;
         //             if(x > Nfloat + 0.5f) x = Nfloat + 0.5f;
@@ -228,38 +224,28 @@ impl Fluid {
         //             if(y > Nfloat + 0.5f) y = Nfloat + 0.5f;
         //             j0 = floorf(y);
         //             j1 = j0 + 1.0f;
-        //             if(z < 0.5f) z = 0.5f;
-        //             if(z > Nfloat + 0.5f) z = Nfloat + 0.5f;
-        //             k0 = floorf(z);
-        //             k1 = k0 + 1.0f;
+        //
 
         //             s1 = x - i0;
         //             s0 = 1.0f - s1;
         //             t1 = y - j0;
         //             t0 = 1.0f - t1;
-        //             u1 = z - k0;
-        //             u0 = 1.0f - u1;
+        //
 
         //             int i0i = i0;
         //             int i1i = i1;
         //             int j0i = j0;
         //             int j1i = j1;
-        //             int k0i = k0;
-        //             int k1i = k1;
+        //
 
-        //             d[IX(i, j, k)] =
+        //             d[IX(i, j)] =
+        //                  s0 * (t0 * d0[IX(i0i,j0i)])
+        //                      +(t1 * d0[IX(i0i,j1i)])
+        //                  +s1 * (t0 * d0[IX(i1i,j0i)])
+        //                      +(t1 * d0[IX(i1i,j1i)])
 
-        //                 s0 * ( t0 * (u0 * d0[IX(i0i, j0i, k0i)]
-        //                             +u1 * d0[IX(i0i, j0i, k1i)])
-        //                     +( t1 * (u0 * d0[IX(i0i, j1i, k0i)]
-        //                             +u1 * d0[IX(i0i, j1i, k1i)])))
-        //                 +s1 * ( t0 * (u0 * d0[IX(i1i, j0i, k0i)]
-        //                             +u1 * d0[IX(i1i, j0i, k1i)])
-        //                     +( t1 * (u0 * d0[IX(i1i, j1i, k0i)]
-        //                             +u1 * d0[IX(i1i, j1i, k1i)])));
         //         }
         //     }
-        // }
         // set_bnd(b, d, N);
     }
 }
