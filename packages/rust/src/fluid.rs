@@ -64,7 +64,7 @@ impl Fluid {
     pub fn add_valocity(&mut self, x: i32, y: i32, v: vecmath::Vector2<Decimal>) {
         self.v[ix(x, y, self.size)] = vecmath::vec2_add(self.v[ix(x, y, self.size)], v);
     }
-    pub fn Step(&mut self) {
+    pub fn step(&mut self) {
         self.diffuse(true);
 
         // project(Vx0, Vy0, Vz0, Vx, Vy, 4, N);
@@ -131,37 +131,37 @@ impl Fluid {
         self.lin_solve(check_bnd, a, c);
     }
     fn project(
-        &mut self, /* ,float *velocX, float *velocY, float *velocZ, float *p, float *div, int iter, int N */
+        &mut self,
+        mut v: Vec<vecmath::Vector2<Decimal>>,
+        mut v_new: Vec<vecmath::Vector2<Decimal>>, /* ,float *velocX, float *velocY, float *velocZ, float *p, float *div, int iter, int N */
     ) {
-        // for (int k = 1; k < N - 1; k++) {
-        //     for (int j = 1; j < N - 1; j++) {
-        //         for (int i = 1; i < N - 1; i++) {
-        //             div[IX(i, j, k)] = -0.5f32*(
-        //                      velocX[IX(i+1, j  , k  )]
-        //                     -velocX[IX(i-1, j  , k  )]
-        //                     +velocY[IX(i  , j+1, k  )]
-        //                     -velocY[IX(i  , j-1, k  )]
-        //                     +velocZ[IX(i  , j  , k+1)]
-        //                     -velocZ[IX(i  , j  , k-1)]
-        //                 )/N;
-        //             p[IX(i, j, k)] = 0;
-        //         }
-        //     }
-        // }
+        let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(1));
+        let multiplier = Decimal::from_f32((-0.5f32).into()).unwrap_or(dec!(1));
+
+        for j in 1..(self.size - 1) {
+            for i in 1..(self.size - 1) {
+                v_new[ix(i, j, self.size)][1] = multiplier
+                    * (v[ix(i + 1, j, self.size)][0] - v[ix(i - 1, j, self.size)][0]
+                        + v[ix(i, j + 1, self.size)][1]
+                        - v[ix(i, j - 1, self.size)][1])
+                    / size;
+                v_new[ix(i, j, self.size)][0] = dec!(0); // p
+            }
+        }
         self.lin_solve(true, dec!(1), dec!(6));
 
-        // for (int k = 1; k < N - 1; k++) {
-        //     for (int j = 1; j < N - 1; j++) {
-        //         for (int i = 1; i < N - 1; i++) {
-        //             velocX[IX(i, j, k)] -= 0.5f * (  p[IX(i+1, j, k)]
-        //                                             -p[IX(i-1, j, k)]) * N;
-        //             velocY[IX(i, j, k)] -= 0.5f * (  p[IX(i, j+1, k)]
-        //                                             -p[IX(i, j-1, k)]) * N;
-        //             velocZ[IX(i, j, k)] -= 0.5f * (  p[IX(i, j, k+1)]
-        //                                             -p[IX(i, j, k-1)]) * N;
-        //         }
-        //     }
-        // }
+        for j in 1..(self.size - 1) {
+            for i in 1..(self.size - 1) {
+                v[ix(i, j, self.size)][0] = multiplier
+                    * (v_new[ix(i + 1, j, self.size)][0] - v_new[ix(i - 1, j, self.size)][0])
+                    * size
+                    - v[ix(i, j, self.size)][0];
+                v[ix(i, j, self.size)][1] = multiplier
+                    * (v_new[ix(i, j + 1, self.size)][0] - v_new[ix(i, j - 1, self.size)][0])
+                    * size
+                    - v[ix(i, j, self.size)][1];
+            }
+        }
         self.set_bnd();
     }
 }

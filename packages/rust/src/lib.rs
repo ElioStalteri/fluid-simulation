@@ -63,28 +63,30 @@ use lazy_static::lazy_static; // 1.4.0
 use std::sync::Mutex;
 
 lazy_static! {
-    static ref FLUID_INSTANCE: Mutex<Vec<fluid::Fluid>> = Mutex::new(vec![]);
-}
-
-#[wasm_bindgen(js_name = "create_fluid")]
-pub fn create_fluid(size: Option<i32>) {
-    let mut tmp = FLUID_INSTANCE.lock().unwrap();
-    if tmp.len() > 0 {
-        tmp.remove(0);
-    }
-    tmp.push(fluid::Fluid::create(
-        size.unwrap_or(0),
+    static ref FLUID_INSTANCE: Mutex<fluid::Fluid> = Mutex::new(fluid::Fluid::create(
+        1,
         dec!(0),
         dec!(0),
         dec!(0),
         4,
     ));
+}
+
+#[wasm_bindgen(js_name = "create_fluid")]
+pub fn create_fluid(size: Option<i32>) {
+    let mut tmp = FLUID_INSTANCE.lock().unwrap();
+
+    *tmp = fluid::Fluid::create(
+        size.unwrap_or(0),
+        dec!(0),
+        dec!(0),
+        dec!(0),
+        4,
+    );
+    tmp.step();
     log("initial creation log");
-    log_u32(tmp.get(0).unwrap().size as u32);
-    log_u32(tmp.len() as u32);
-    let tmp1 = Decimal::from_i32((tmp.get(0).unwrap().size - 2).into()).unwrap_or(dec!(8888));
+    log_u32(tmp.size as u32);
+    let tmp1 = Decimal::from_i32((tmp.size - 2).into()).unwrap_or(dec!(8888));
     log_u32(tmp1.to_u32().unwrap_or(9999));
     log("finish initial creation log");
-
-
 }
