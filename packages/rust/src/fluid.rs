@@ -32,10 +32,10 @@ pub struct Fluid {
     pub dt: Decimal,
     pub diff: Decimal,
     pub visc: Decimal,
-    pub s: Vec<Decimal>,
+    pub s_: Vec<Decimal>,
     pub density: Vec<Decimal>,
-    pub v: Vec<vecmath::Vector2<Decimal>>,
-    pub v_0: Vec<vecmath::Vector2<Decimal>>,
+    pub vel: Vec<vecmath::Vector2<Decimal>>,
+    pub vel_0: Vec<vecmath::Vector2<Decimal>>,
 }
 
 impl Fluid {
@@ -52,28 +52,28 @@ impl Fluid {
             diff: diffusion,
             visc: viscosity,
             dt,
-            s: vec![dec!(0); (size * size).try_into().unwrap()],
+            s_: vec![dec!(0); (size * size).try_into().unwrap()],
             density: vec![dec!(0); (size * size).try_into().unwrap()],
-            v: vec![[dec!(0); 2]; (size * size).try_into().unwrap()],
-            v_0: vec![[dec!(0); 2]; (size * size).try_into().unwrap()],
+            vel: vec![[dec!(0); 2]; (size * size).try_into().unwrap()],
+            vel_0: vec![[dec!(0); 2]; (size * size).try_into().unwrap()],
         }
     }
     pub fn add_density(&mut self, x: i32, y: i32, amount: Decimal) {
         self.density[ix(x, y, self.size)] += amount;
     }
     pub fn add_valocity(&mut self, x: i32, y: i32, v: vecmath::Vector2<Decimal>) {
-        self.v[ix(x, y, self.size)] = vecmath::vec2_add(self.v[ix(x, y, self.size)], v);
+        self.vel[ix(x, y, self.size)] = vecmath::vec2_add(self.vel[ix(x, y, self.size)], v);
     }
     pub fn step(&mut self) {
         self.diffuse(true);
 
-        // project(Vx0, Vy0, Vz0, Vx, Vy, 4, N);
+        self.project();
 
         // advect(1, Vx, Vx0, Vx0, Vy0, Vz0, dt, N);
         // advect(2, Vy, Vy0, Vx0, Vy0, Vz0, dt, N);
         // advect(3, Vz, Vz0, Vx0, Vy0, Vz0, dt, N);
 
-        // project(Vx, Vy, Vz, Vx0, Vy0, 4, N);
+        self.project_inverse();
 
         self.diffuse(false);
         // advect(0, density, s, Vx, Vy, Vz, dt, N);
@@ -85,18 +85,18 @@ impl Fluid {
                 for is in 1..(self.size - 1) {
                     let j = js as i32;
                     let i = is as i32;
-                    self.v_0[ix(i, j, self.size)] = vecmath::vec2_scale(
+                    self.vel_0[ix(i, j, self.size)] = vecmath::vec2_scale(
                         vecmath::vec2_add(
-                            self.v[ix(i, j, self.size)],
+                            self.vel[ix(i, j, self.size)],
                             vecmath::vec2_scale(
                                 vecmath::vec2_add(
                                     vecmath::vec2_add(
-                                        self.v_0[ix(i + 1, j, self.size)],
-                                        self.v_0[ix(i - 1, j, self.size)],
+                                        self.vel_0[ix(i + 1, j, self.size)],
+                                        self.vel_0[ix(i - 1, j, self.size)],
                                     ),
                                     vecmath::vec2_add(
-                                        self.v_0[ix(i, j + 1, self.size)],
-                                        self.v_0[ix(i, j - 1, self.size)],
+                                        self.vel_0[ix(i, j + 1, self.size)],
+                                        self.vel_0[ix(i, j - 1, self.size)],
                                     ),
                                 ),
                                 a,
@@ -114,12 +114,12 @@ impl Fluid {
     fn set_bnd(&mut self) {
         // loop all borders and negate the array
         for i in 0..(self.size - 1) {
-            self.v_0[ix(i, 0, self.size)] = vecmath::vec2_neg(self.v_0[ix(i, 1, self.size)]);
-            self.v_0[ix(i, (self.size - 1), self.size)] =
-                vecmath::vec2_neg(self.v_0[ix(i, (self.size - 2), self.size)]);
-            self.v_0[ix(0, i, self.size)] = vecmath::vec2_neg(self.v_0[ix(1, i, self.size)]);
-            self.v_0[ix((self.size - 1), i, self.size)] =
-                vecmath::vec2_neg(self.v_0[ix((self.size - 2), i, self.size)]);
+            self.vel_0[ix(i, 0, self.size)] = vecmath::vec2_neg(self.vel_0[ix(i, 1, self.size)]);
+            self.vel_0[ix(i, (self.size - 1), self.size)] =
+                vecmath::vec2_neg(self.vel_0[ix(i, (self.size - 2), self.size)]);
+            self.vel_0[ix(0, i, self.size)] = vecmath::vec2_neg(self.vel_0[ix(1, i, self.size)]);
+            self.vel_0[ix((self.size - 1), i, self.size)] =
+                vecmath::vec2_neg(self.vel_0[ix((self.size - 2), i, self.size)]);
         }
     }
     fn diffuse(&mut self, check_bnd: bool) {
@@ -130,38 +130,136 @@ impl Fluid {
         let c = dec!(1) + dec!(6) * a;
         self.lin_solve(check_bnd, a, c);
     }
-    fn project(
-        &mut self,
-        mut v: Vec<vecmath::Vector2<Decimal>>,
-        mut v_new: Vec<vecmath::Vector2<Decimal>>, /* ,float *velocX, float *velocY, float *velocZ, float *p, float *div, int iter, int N */
-    ) {
+    fn project(&mut self) {
         let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(1));
         let multiplier = Decimal::from_f32((-0.5f32).into()).unwrap_or(dec!(1));
 
         for j in 1..(self.size - 1) {
             for i in 1..(self.size - 1) {
-                v_new[ix(i, j, self.size)][1] = multiplier
-                    * (v[ix(i + 1, j, self.size)][0] - v[ix(i - 1, j, self.size)][0]
-                        + v[ix(i, j + 1, self.size)][1]
-                        - v[ix(i, j - 1, self.size)][1])
+                self.vel_0[ix(i, j, self.size)][1] = multiplier
+                    * (self.vel[ix(i + 1, j, self.size)][0] - self.vel[ix(i - 1, j, self.size)][0]
+                        + self.vel[ix(i, j + 1, self.size)][1]
+                        - self.vel[ix(i, j - 1, self.size)][1])
                     / size;
-                v_new[ix(i, j, self.size)][0] = dec!(0); // p
+                self.vel_0[ix(i, j, self.size)][0] = dec!(0);
             }
         }
         self.lin_solve(true, dec!(1), dec!(6));
 
         for j in 1..(self.size - 1) {
             for i in 1..(self.size - 1) {
-                v[ix(i, j, self.size)][0] = multiplier
-                    * (v_new[ix(i + 1, j, self.size)][0] - v_new[ix(i - 1, j, self.size)][0])
+                self.vel[ix(i, j, self.size)][0] = multiplier
+                    * (self.vel_0[ix(i + 1, j, self.size)][0]
+                        - self.vel_0[ix(i - 1, j, self.size)][0])
                     * size
-                    - v[ix(i, j, self.size)][0];
-                v[ix(i, j, self.size)][1] = multiplier
-                    * (v_new[ix(i, j + 1, self.size)][0] - v_new[ix(i, j - 1, self.size)][0])
+                    - self.vel[ix(i, j, self.size)][0];
+                self.vel[ix(i, j, self.size)][1] = multiplier
+                    * (self.vel_0[ix(i, j + 1, self.size)][0]
+                        - self.vel_0[ix(i, j - 1, self.size)][0])
                     * size
-                    - v[ix(i, j, self.size)][1];
+                    - self.vel[ix(i, j, self.size)][1];
             }
         }
         self.set_bnd();
+    }
+    fn project_inverse(&mut self) {
+        let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(1));
+        let multiplier = Decimal::from_f32((-0.5f32).into()).unwrap_or(dec!(1));
+
+        for j in 1..(self.size - 1) {
+            for i in 1..(self.size - 1) {
+                self.vel[ix(i, j, self.size)][1] = multiplier
+                    * (self.vel_0[ix(i + 1, j, self.size)][0]
+                        - self.vel_0[ix(i - 1, j, self.size)][0]
+                        + self.vel_0[ix(i, j + 1, self.size)][1]
+                        - self.vel_0[ix(i, j - 1, self.size)][1])
+                    / size;
+                self.vel[ix(i, j, self.size)][0] = dec!(0);
+            }
+        }
+        self.lin_solve(true, dec!(1), dec!(6));
+
+        for j in 1..(self.size - 1) {
+            for i in 1..(self.size - 1) {
+                self.vel_0[ix(i, j, self.size)][0] = multiplier
+                    * (self.vel[ix(i + 1, j, self.size)][0] - self.vel[ix(i - 1, j, self.size)][0])
+                    * size
+                    - self.vel_0[ix(i, j, self.size)][0];
+                self.vel_0[ix(i, j, self.size)][1] = multiplier
+                    * (self.vel[ix(i, j + 1, self.size)][0] - self.vel[ix(i, j - 1, self.size)][0])
+                    * size
+                    - self.vel_0[ix(i, j, self.size)][1];
+            }
+        }
+        self.set_bnd();
+    }
+    fn advect(
+        &mut self,
+        // int b, float *d, float *d0,  float *velocX, float *velocY, float *velocZ, float dt, int N
+    ) {
+        // float i0, i1, j0, j1, k0, k1;
+
+        // float dtx = dt * (N - 2);
+        // float dty = dt * (N - 2);
+        // float dtz = dt * (N - 2);
+
+        // float s0, s1, t0, t1, u0, u1;
+        // float tmp1, tmp2, tmp3, x, y, z;
+
+        // float Nfloat = N;
+        // float ifloat, jfloat, kfloat;
+        // int i, j, k;
+
+        // for(k = 1, kfloat = 1; k < N - 1; k++, kfloat++) {
+        //     for(j = 1, jfloat = 1; j < N - 1; j++, jfloat++) {
+        //         for(i = 1, ifloat = 1; i < N - 1; i++, ifloat++) {
+        //             tmp1 = dtx * velocX[IX(i, j, k)];
+        //             tmp2 = dty * velocY[IX(i, j, k)];
+        //             tmp3 = dtz * velocZ[IX(i, j, k)];
+        //             x    = ifloat - tmp1;
+        //             y    = jfloat - tmp2;
+        //             z    = kfloat - tmp3;
+
+        //             if(x < 0.5f) x = 0.5f;
+        //             if(x > Nfloat + 0.5f) x = Nfloat + 0.5f;
+        //             i0 = floorf(x);
+        //             i1 = i0 + 1.0f;
+        //             if(y < 0.5f) y = 0.5f;
+        //             if(y > Nfloat + 0.5f) y = Nfloat + 0.5f;
+        //             j0 = floorf(y);
+        //             j1 = j0 + 1.0f;
+        //             if(z < 0.5f) z = 0.5f;
+        //             if(z > Nfloat + 0.5f) z = Nfloat + 0.5f;
+        //             k0 = floorf(z);
+        //             k1 = k0 + 1.0f;
+
+        //             s1 = x - i0;
+        //             s0 = 1.0f - s1;
+        //             t1 = y - j0;
+        //             t0 = 1.0f - t1;
+        //             u1 = z - k0;
+        //             u0 = 1.0f - u1;
+
+        //             int i0i = i0;
+        //             int i1i = i1;
+        //             int j0i = j0;
+        //             int j1i = j1;
+        //             int k0i = k0;
+        //             int k1i = k1;
+
+        //             d[IX(i, j, k)] =
+
+        //                 s0 * ( t0 * (u0 * d0[IX(i0i, j0i, k0i)]
+        //                             +u1 * d0[IX(i0i, j0i, k1i)])
+        //                     +( t1 * (u0 * d0[IX(i0i, j1i, k0i)]
+        //                             +u1 * d0[IX(i0i, j1i, k1i)])))
+        //                 +s1 * ( t0 * (u0 * d0[IX(i1i, j0i, k0i)]
+        //                             +u1 * d0[IX(i1i, j0i, k1i)])
+        //                     +( t1 * (u0 * d0[IX(i1i, j1i, k0i)]
+        //                             +u1 * d0[IX(i1i, j1i, k1i)])));
+        //         }
+        //     }
+        // }
+        // set_bnd(b, d, N);
     }
 }
