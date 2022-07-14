@@ -7,41 +7,10 @@ fn IX(x: i32, y: i32, size: i32) -> usize {
     (x + y * size) as usize
 }
 
-fn lin_solve(
-    mut v_0: Vec<vecmath::Vector2<Decimal>>,
-    v: Vec<vecmath::Vector2<Decimal>>,
-    a: Decimal,
-    c: Decimal,
-    iter: i32,
-    n: i32,
-    size: i32,
-) {
-    let c_recip = dec!(1.0) / c;
-    for _k in 0..iter {
-        for js in 1..(n - 1) {
-            for is in 1..(n - 1) {
-                let j = js as i32;
-                let i = is as i32;
-                v_0[IX(i, j, size)] = vecmath::vec2_scale(
-                    vecmath::vec2_add(
-                        v[IX(i, j, size)],
-                        vecmath::vec2_scale(
-                            vecmath::vec2_add(
-                                vecmath::vec2_add(v_0[IX(i + 1, j, size)], v_0[IX(i - 1, j, size)]),
-                                vecmath::vec2_add(v_0[IX(i, j + 1, size)], v_0[IX(i, j - 1, size)]),
-                            ),
-                            a,
-                        ),
-                    ),
-                    c_recip,
-                );
-            }
-        }
-    }
-}
 
 pub struct Fluid {
     pub size: i32,
+    pub iter: i32,
     pub dt: Decimal,
     pub diff: Decimal,
     pub visc: Decimal,
@@ -52,9 +21,10 @@ pub struct Fluid {
 }
 
 impl Fluid {
-    pub fn create(size: i32, diffusion: Decimal, viscosity: Decimal, dt: Decimal) -> Fluid {
+    pub fn create(size: i32, diffusion: Decimal, viscosity: Decimal, dt: Decimal,iter:i32) -> Fluid {
         Self {
             size,
+            iter,
             diff: diffusion,
             visc: viscosity,
             dt,
@@ -70,4 +40,34 @@ impl Fluid {
     pub fn add_valocity(&mut self, x: i32, y: i32, v: vecmath::Vector2<Decimal>) {
         self.v[IX(x, y, self.size)] = vecmath::vec2_add(self.v[IX(x, y, self.size)], v);
     }
+    fn lin_solve(
+        &mut self,
+        a: Decimal,
+        c: Decimal,
+    ) {
+        let c_recip = dec!(1.0) / c;
+        for _k in 0..self.iter {
+            for js in 1..(self.size - 1) {
+                for is in 1..(self.size - 1) {
+                    let j = js as i32;
+                    let i = is as i32;
+                    self.v_0[IX(i, j, self.size)] = vecmath::vec2_scale(
+                        vecmath::vec2_add(
+                            self.v[IX(i, j, self.size)],
+                            vecmath::vec2_scale(
+                                vecmath::vec2_add(
+                                    vecmath::vec2_add(self.v_0[IX(i + 1, j, self.size)], self.v_0[IX(i - 1, j, self.size)]),
+                                    vecmath::vec2_add(self.v_0[IX(i, j + 1, self.size)], self.v_0[IX(i, j - 1, self.size)]),
+                                ),
+                                a,
+                            ),
+                        ),
+                        c_recip,
+                    );
+                }
+            }
+            // set_bnd(V_0, N);
+        }
+    }
+    
 }

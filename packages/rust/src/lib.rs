@@ -76,6 +76,7 @@ pub fn create_fluid(size: Option<i32>) {
         dec!(0),
         dec!(0),
         dec!(0),
+        4,
     ));
     log_u32(tmp.get(0).unwrap().size as u32);
     log_u32(tmp.len() as u32);
