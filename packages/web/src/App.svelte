@@ -7,50 +7,65 @@
     fluid_get_density,
   } from "vite-wasm-functions";
 
-  let square_side = 255;
+  let canvas_dim = 100;
+
   let height = 55;
 
   const sketch = (p5) => {
+    let square_size = [];
+    let density = [];
     function convertSize(x, y) {
       return [
-        Math.round((x / p5.width) * square_side),
-        Math.round((y / p5.height) * square_side),
+        Math.round((x / p5.width) * canvas_dim),
+        Math.round((y / p5.height) * canvas_dim),
       ];
     }
 
     p5.mouseDragged = () => {
       console.log(
         ...convertSize(
-          p5.constrain(p5.mouseX, 0, square_side),
-          p5.constrain(p5.mouseY, 0, square_side)
+          p5.constrain(p5.mouseX, 0, canvas_dim),
+          p5.constrain(p5.mouseY, 0, canvas_dim)
         )
       );
       fluid_add_density(
         ...convertSize(
-          p5.constrain(p5.mouseX, 0, square_side),
-          p5.constrain(p5.mouseY, 0, square_side)
+          p5.constrain(p5.mouseX, 0, canvas_dim),
+          p5.constrain(p5.mouseY, 0, canvas_dim)
         ),
         10
       );
     };
 
     p5.mouseClicked = () => {
-      let tmp = fluid_get_density()
-      tmp.forEach(d=>d)
-      console.log(tmp);
+      // @ts-ignore
+      density = fluid_get_density();
+      console.log(density);
     };
 
     p5.setup = () => {
-      create_fluid(square_side)
+      create_fluid(canvas_dim);
       p5.createCanvas(p5.windowWidth - 50, p5.windowHeight - 50);
+      square_size = [p5.width / canvas_dim, p5.height / canvas_dim];
       p5.frameRate(5);
     };
 
     p5.draw = () => {
       fluid_step();
       p5.background(0);
+      p5.noStroke();
+      for (let i = 0; i < density.length; i++) {
+        const d = density[i];
 
-      p5.noLoop();
+        const x = i % canvas_dim;
+        // @ts-ignore
+        const y = parseInt(i / canvas_dim);
+        p5.fill(d);
+        p5.rect(x * square_size[0], y * square_size[1], ...square_size);
+        // console.log(x * square_size[0], y * square_size[1])
+      }
+
+      // p5.noLoop();
     };
   };
 </script>
