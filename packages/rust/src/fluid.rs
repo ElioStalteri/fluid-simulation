@@ -61,7 +61,7 @@ impl Fluid {
     pub fn add_density(&mut self, x: i32, y: i32, amount: Decimal) {
         self.density[ix(x, y, self.size)] += amount;
     }
-    pub fn add_valocity(&mut self, x: i32, y: i32, v: vecmath::Vector2<Decimal>) {
+    pub fn add_velocity(&mut self, x: i32, y: i32, v: vecmath::Vector2<Decimal>) {
         self.vel[ix(x, y, self.size)] = vecmath::vec2_add(self.vel[ix(x, y, self.size)], v);
     }
     pub fn step(&mut self) {
@@ -182,7 +182,7 @@ impl Fluid {
                 if x > size + dec!(0.5) {
                     x = size + dec!(0.5);
                 }
-                let i0 = x;
+                let i0 = x.floor();
                 let i1 = i0 + dec!(1);
                 if y < dec!(0.5) {
                     y = dec!(0.5);
@@ -190,7 +190,7 @@ impl Fluid {
                 if y > size + dec!(0.5) {
                     y = size + dec!(0.5);
                 }
-                let j0 = y;
+                let j0 = y.floor();
                 let j1 = j0 + dec!(1.0);
 
                 let s1 = x - i0;
@@ -198,10 +198,10 @@ impl Fluid {
                 let t1 = y - j0;
                 let t0 = dec!(1) - t1;
 
-                let i0i = i0.to_i32().unwrap();
-                let i1i = i1.to_i32().unwrap();
-                let j0i = j0.to_i32().unwrap();
-                let j1i = j1.to_i32().unwrap();
+                let i0i = i0.floor().to_i32().unwrap();
+                let i1i = i1.floor().to_i32().unwrap();
+                let j0i = j0.floor().to_i32().unwrap();
+                let j1i = j1.floor().to_i32().unwrap();
 
                 r_[ix(i, j, self.size)] = vecmath::vec2_add(
                     vecmath::vec2_scale(

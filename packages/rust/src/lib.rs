@@ -72,7 +72,7 @@ pub fn create_fluid(size: Option<i32>) {
     let mut tmp = FLUID_INSTANCE.lock().unwrap();
 
     // 41 mins to render
-    *tmp = fluid::Fluid::create(size.unwrap_or(0), dec!(0.1), dec!(0), dec!(0), 4);
+    *tmp = fluid::Fluid::create(size.unwrap_or(0), dec!(0.00005), dec!(0.01), dec!(0.001), 4);
     // tmp.step();
     // log("initial creation log");
     // log_u32(tmp.size as u32);
@@ -91,6 +91,12 @@ pub fn fluid_step() {
 pub fn fluid_add_density(x: Option<i32>,y: Option<i32>,amount: Option<i32>) {
     let mut tmp = FLUID_INSTANCE.lock().unwrap();
     tmp.add_density(x.unwrap(),y.unwrap(),Decimal::from_i32(amount.unwrap()).unwrap());
+}
+
+#[wasm_bindgen(js_name = "fluid_add_velocity")]
+pub fn fluid_add_velocity(x: Option<i32>,y: Option<i32>,vx: Option<f64>, vy:Option<f64>) {
+    let mut tmp = FLUID_INSTANCE.lock().unwrap();
+    tmp.add_velocity(x.unwrap(),y.unwrap(),[Decimal::from_f64(vx.unwrap()).unwrap(), Decimal::from_f64(vy.unwrap()).unwrap()]);
 }
 
 #[wasm_bindgen(js_name = "fluid_get_density")]

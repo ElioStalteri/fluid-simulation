@@ -5,9 +5,10 @@
     fluid_step,
     fluid_add_density,
     fluid_get_density,
+    fluid_add_velocity,
   } from "vite-wasm-functions";
 
-  let canvas_dim = 100;
+  let canvas_dim = 200;
 
   let height = 55;
 
@@ -21,45 +22,42 @@
       ];
     }
 
-    p5.mouseDragged = () => {
-      console.log(
-        ...convertSize(
-          p5.constrain(p5.mouseX, 0, canvas_dim),
-          p5.constrain(p5.mouseY, 0, canvas_dim)
-        )
-      );
-      fluid_add_density(
-        ...convertSize(
-          p5.constrain(p5.mouseX, 0, canvas_dim),
-          p5.constrain(p5.mouseY, 0, canvas_dim)
-        ),
-        10
-      );
-    };
+    // p5.mouseDragged = () => {
+    //   console.log(...convertSize(p5.mouseX, p5.mouseY));
 
-    p5.mouseClicked = () => {
-      // @ts-ignore
-      density = fluid_get_density();
-      console.log(density);
+    // };
+
+    p5.mouseMoved = () => {
+      fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 200);
+      fluid_add_velocity(...convertSize(p5.mouseX, p5.mouseY), -10,-10);
+      // setTimeout(() => {
+      //   console.log(density);
+      // });
     };
 
     p5.setup = () => {
       create_fluid(canvas_dim);
       p5.createCanvas(p5.windowWidth - 50, p5.windowHeight - 50);
       square_size = [p5.width / canvas_dim, p5.height / canvas_dim];
+      console.log(square_size);
       p5.frameRate(5);
     };
 
     p5.draw = () => {
       fluid_step();
+      // @ts-ignore
+      density = fluid_get_density();
+
       p5.background(0);
       p5.noStroke();
       for (let i = 0; i < density.length; i++) {
         const d = density[i];
+        // if(d>0)console.log(d)
 
         const x = i % canvas_dim;
         // @ts-ignore
         const y = parseInt(i / canvas_dim);
+
         p5.fill(d);
         p5.rect(x * square_size[0], y * square_size[1], ...square_size);
         // console.log(x * square_size[0], y * square_size[1])
