@@ -69,14 +69,13 @@ impl Fluid {
 
         self.project();
 
-        // advect(1, Vx, Vx0, Vx0, Vy0, Vz0, dt, N);
-        // advect(2, Vy, Vy0, Vx0, Vy0, Vz0, dt, N);
-        // advect(3, Vz, Vz0, Vx0, Vy0, Vz0, dt, N);
+        // advect(1, Vx, Vx0, Vx0, Vy0, dt, N);
+        // advect(2, Vy, Vy0, Vx0, Vy0, dt, N);
 
         self.project_inverse();
 
         self.diffuse(false);
-        // advect(0, density, s, Vx, Vy, Vz, dt, N);
+        // advect(0, density, s, Vx, Vy, dt, N);
     }
     fn lin_solve(&mut self, check_bnd: bool, a: Decimal, c: Decimal) {
         let c_recip = dec!(1.0) / c;
@@ -204,7 +203,8 @@ impl Fluid {
         }
         self.set_bnd();
     }
-    fn advect(
+    // fn advect_density
+    fn advect_velocity(
         &mut self,
         // int b, float[] d, float[] d0,  float[] velocX, float[] velocY float dt, int N
     ) {
