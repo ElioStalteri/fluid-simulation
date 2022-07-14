@@ -108,8 +108,8 @@ impl Fluid {
         }
     }
     fn diffuse(&mut self) {
-        let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(0));
-        log("convert size to decimal if 9999 it didnt work!!");
+        let size = Decimal::from_i32((self.size - 2).into()).unwrap_or(dec!(8888));
+        log("convert size to decimal if 9999 or 8888 it didnt work!!");
         log_u32(size.to_u32().unwrap_or(9999));
         let a = self.dt * self.diff * size * size;
         let c = dec!(1) + dec!(6) * a;
