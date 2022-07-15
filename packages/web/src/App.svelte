@@ -8,7 +8,7 @@
     fluid_add_velocity,
   } from "vite-wasm-functions";
 
-  let canvas_dim = 100;
+  let canvas_dim = 20;
 
   let height = 55;
 
@@ -27,13 +27,13 @@
 
     // };
 
-    p5.mouseMoved = () => {
-      fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 500);
-      fluid_add_velocity(...convertSize(p5.mouseX, p5.mouseY), p5.random(-1000,1000),p5.random(-1000,1000));
-      // setTimeout(() => {
-      //   console.log(density);
-      // });
-    };
+    // p5.mouseMoved = () => {
+    //   fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 10000000);
+    //   fluid_add_velocity(...convertSize(p5.mouseX, p5.mouseY), p5.random(-10,10),p5.random(-10,10));
+    //   // setTimeout(() => {
+    //   //   console.log(density);
+    //   // });
+    // };
 
     p5.mouseClicked =()=>{
       console.log(density);
@@ -43,11 +43,12 @@
       create_fluid(canvas_dim);
       p5.createCanvas(p5.windowWidth - 50, p5.windowHeight - 50);
       square_size = [p5.width / canvas_dim, p5.height / canvas_dim];
-      console.log(square_size);
       p5.frameRate(5);
     };
 
     p5.draw = () => {
+      fluid_add_density(...convertSize(p5.width/2, p5.height/2), 5000000000000);
+      // fluid_add_velocity(...convertSize(p5.width/2, p5.height/2), p5.random(-0.1,0.1),p5.random(-0.1,0.1));
       fluid_step();
       // @ts-ignore
       density = fluid_get_density();

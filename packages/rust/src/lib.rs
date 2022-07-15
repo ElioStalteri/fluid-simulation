@@ -72,7 +72,7 @@ pub fn create_fluid(size: Option<i32>) {
     let mut tmp = FLUID_INSTANCE.lock().unwrap();
 
     // 41 mins to render
-    *tmp = fluid::Fluid::create(size.unwrap_or(0), dec!(0.1), dec!(0), dec!(0.001), 4);
+    *tmp = fluid::Fluid::create(size.unwrap_or(0), dec!(0.1), dec!(0), dec!(0.1), 4);
     // tmp.step();
     // log("initial creation log");
     // log_u32(tmp.size as u32);
