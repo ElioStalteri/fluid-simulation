@@ -3,6 +3,7 @@ use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use std::convert::TryInto;
 use wasm_bindgen::prelude::*;
+use std::cmp;
 
 #[wasm_bindgen]
 extern "C" {
@@ -70,9 +71,9 @@ impl Fluid {
         // diffuse(2, Vy0, Vy, visc, dt, 4, N);
         // diffuse(3, Vz0, Vz, visc, dt, 4, N);
 
-        let res = self.project(self.vel_0.clone(), self.vel.clone());
-        self.vel_0 = res[0].clone();
-        self.vel = res[1].clone();
+        // let res = self.project(self.vel_0.clone(), self.vel.clone());
+        // self.vel_0 = res[0].clone();
+        // self.vel = res[1].clone();
         // project(Vx0, Vy0, Vz0, Vx, Vy, 4, N);
 
         self.vel = self.advect_vector(self.vel.clone(),self.vel_0.clone(),self.vel_0.clone());
@@ -80,9 +81,9 @@ impl Fluid {
         // advect(2, Vy, Vy0, Vx0, Vy0, Vz0, dt, N);
         // advect(3, Vz, Vz0, Vx0, Vy0, Vz0, dt, N);
 
-        let res1 = self.project(self.vel.clone(), self.vel_0.clone());
-        self.vel = res1[0].clone();
-        self.vel_0 = res1[1].clone();
+        // let res1 = self.project(self.vel.clone(), self.vel_0.clone());
+        // self.vel = res1[0].clone();
+        // self.vel_0 = res1[1].clone();
         // project(Vx, Vy, Vz, Vx0, Vy0, 4, N);
 
         self.density_0 = self.diffuse_value(self.density_0.clone(), self.density.clone());
@@ -212,15 +213,15 @@ impl Fluid {
                 r_[ix(i, j, self.size)] = vecmath::vec2_add(
                     vecmath::vec2_scale(
                         vecmath::vec2_add(
-                            vecmath::vec2_scale(r_0_[ix(i0i, j0i, self.size)], t0),
-                            vecmath::vec2_scale(r_0_[ix(i0i, j1i, self.size)], t1),
+                            vecmath::vec2_scale(r_0_[cmp::min(ix(i0i, j0i, self.size),(self.size - 1) as usize)], t0),
+                            vecmath::vec2_scale(r_0_[cmp::min(ix(i0i, j1i, self.size),(self.size - 1) as usize)], t1),
                         ),
                         s0,
                     ),
                     vecmath::vec2_scale(
                         vecmath::vec2_add(
-                            vecmath::vec2_scale(r_0_[ix(i1i, j0i, self.size)], t0),
-                            vecmath::vec2_scale(r_0_[ix(i1i, j1i, self.size)], t1),
+                            vecmath::vec2_scale(r_0_[cmp::min(ix(i1i, j0i, self.size),(self.size - 1) as usize)], t0),
+                            vecmath::vec2_scale(r_0_[cmp::min(ix(i1i, j1i, self.size),(self.size - 1) as usize)], t1),
                         ),
                         s1,
                     ),

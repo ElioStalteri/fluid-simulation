@@ -8,7 +8,7 @@
     fluid_add_velocity,
   } from "vite-wasm-functions";
 
-  let canvas_dim = 50;
+  let canvas_dim = 100;
 
   let height = 55;
 
@@ -28,12 +28,16 @@
     // };
 
     p5.mouseMoved = () => {
-      fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 200);
-      fluid_add_velocity(...convertSize(p5.mouseX, p5.mouseY), -10,-10);
+      fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 500);
+      fluid_add_velocity(...convertSize(p5.mouseX, p5.mouseY), p5.random(-1000,1000),p5.random(-1000,1000));
       // setTimeout(() => {
       //   console.log(density);
       // });
     };
+
+    p5.mouseClicked =()=>{
+      console.log(density);
+    }
 
     p5.setup = () => {
       create_fluid(canvas_dim);
@@ -58,7 +62,7 @@
         // @ts-ignore
         const y = parseInt(i / canvas_dim);
 
-        p5.fill(d);
+        p5.fill(d*100);
         p5.rect(x * square_size[0], y * square_size[1], ...square_size);
         // console.log(x * square_size[0], y * square_size[1])
       }
