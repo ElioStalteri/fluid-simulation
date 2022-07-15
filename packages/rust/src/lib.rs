@@ -2,7 +2,7 @@ mod fluid;
 mod utils;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
-use std::convert::TryInto;
+// use std::convert::TryInto;
 
 use wasm_bindgen::prelude::*;
 
@@ -97,11 +97,13 @@ pub fn fluid_add_density(x: Option<i32>,y: Option<i32>,amount: Option<i32>) {
 pub fn fluid_add_velocity(x: Option<i32>,y: Option<i32>,vx: Option<f64>, vy:Option<f64>) {
     let mut tmp = FLUID_INSTANCE.lock().unwrap();
     tmp.add_velocity(x.unwrap(),y.unwrap(),[Decimal::from_f64(vx.unwrap()).unwrap(), Decimal::from_f64(vy.unwrap()).unwrap()]);
+    let vy_ = Decimal::from_f64(vy.unwrap()).unwrap().to_string();
+    log(&vy_);
 }
 
 #[wasm_bindgen(js_name = "fluid_get_density")]
-pub fn fluid_get_density(x: Option<i32>,y: Option<i32>) -> Vec<f64> {
-    let mut tmp = FLUID_INSTANCE.lock().unwrap();
+pub fn fluid_get_density() -> Vec<f64> {
+    let tmp = FLUID_INSTANCE.lock().unwrap();
     return tmp.density.iter().map(|v| v.to_f64().unwrap()).collect();
     // get_density(x.unwrap(),y.unwrap()).to_f64().unwrap()
 }

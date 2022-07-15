@@ -8,7 +8,7 @@
     fluid_add_velocity,
   } from "vite-wasm-functions";
 
-  let canvas_dim = 200;
+  let canvas_dim = 50;
 
   let height = 55;
 
