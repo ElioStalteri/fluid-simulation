@@ -6,9 +6,10 @@
     fluid_add_density,
     fluid_get_density,
     fluid_add_velocity,
+    fluid_get_velocity,
   } from "vite-wasm-functions";
 
-  let canvas_dim = 20;
+  let canvas_dim = 100;
 
   let height = 55;
 
@@ -35,9 +36,16 @@
     //   // });
     // };
 
-    p5.mouseClicked =()=>{
-      console.log(density);
-    }
+    p5.mouseMoved = () => {
+      // console.log(density);
+      // console.log(fluid_get_velocity())
+      fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 20000000);
+      fluid_add_velocity(
+        ...convertSize(p5.mouseX, p5.mouseY),
+        p5.random(-1, 1),
+        p5.random(-1, 1)
+      );
+    };
 
     p5.setup = () => {
       create_fluid(canvas_dim);
@@ -47,9 +55,10 @@
     };
 
     p5.draw = () => {
-      fluid_add_density(...convertSize(p5.width/2, p5.height/2), 5000000000000);
-      // fluid_add_velocity(...convertSize(p5.width/2, p5.height/2), p5.random(-0.1,0.1),p5.random(-0.1,0.1));
+      // if(p5.random()>0.5)
+
       fluid_step();
+
       // @ts-ignore
       density = fluid_get_density();
 
@@ -63,7 +72,7 @@
         // @ts-ignore
         const y = parseInt(i / canvas_dim);
 
-        p5.fill(d*100);
+        p5.fill(d);
         p5.rect(x * square_size[0], y * square_size[1], ...square_size);
         // console.log(x * square_size[0], y * square_size[1])
       }

@@ -18,6 +18,12 @@ extern "C" {
     #[wasm_bindgen(js_namespace = console, js_name = log)]
     fn log_u32(a: u32);
 
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_f64(a: f64);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_f64v(a: Vec<f64>);
+
     // Multiple arguments too!
     #[wasm_bindgen(js_namespace = console, js_name = log)]
     fn log_many(a: &str, b: &str);
@@ -84,6 +90,8 @@ impl Fluid {
             self.vely.clone(),
         );
 
+        // log("self.velx");
+        // log_f64v(self.velx.iter().map(|v| v.to_f64().unwrap()).collect());
         self.velx = self.advect(
             1,
             self.velx.clone(),
@@ -91,6 +99,9 @@ impl Fluid {
             self.velx0.clone(),
             self.vely0.clone(),
         );
+        // log("self.velx");
+        // log_f64v(self.velx.iter().map(|v| v.to_f64().unwrap()).collect());
+
         self.vely = self.advect(
             2,
             self.vely.clone(),
@@ -98,6 +109,8 @@ impl Fluid {
             self.velx0.clone(),
             self.vely0.clone(),
         );
+        // log("self.vely");
+        // log_f64v(self.vely.iter().map(|v| v.to_f64().unwrap()).collect());
 
         [self.velx, self.vely, self.velx0, self.vely0] = self.project(
             self.velx.clone(),
@@ -194,7 +207,8 @@ impl Fluid {
         let size = Decimal::from_i32((self.size).into()).unwrap_or(dec!(1));
 
         let dt_ = self.dt * (size - dec!(2));
-
+        // log_f64v(r_.iter().map(|x| x.to_f64().unwrap()).collect());
+        // log_f64v(r0_.iter().map(|x| x.to_f64().unwrap()).collect());
         for j in 1..(self.size - 1) {
             for i in 1..(self.size - 1) {
                 let tmpx = vx[ix(i, j, self.size)] * dt_;
@@ -206,16 +220,16 @@ impl Fluid {
                 if x < dec!(0.5) {
                     x = dec!(0.5);
                 }
-                if x > size + dec!(0.5) {
-                    x = size + dec!(0.5);
+                if x > size - dec!(1.5) {
+                    x = size - dec!(1.5);
                 }
                 let i0 = x.floor();
                 let i1 = i0 + dec!(1);
-                if y < dec!(0.5) {
-                    y = dec!(0.5);
+                if y < dec!(1.5) {
+                    y = dec!(1.5);
                 }
-                if y > size + dec!(0.5) {
-                    y = size + dec!(0.5);
+                if y > size - dec!(1.5) {
+                    y = size - dec!(1.5);
                 }
                 let j0 = y.floor();
                 let j1 = j0 + dec!(1.0);
@@ -230,16 +244,28 @@ impl Fluid {
                 let j0i = j0.to_i32().unwrap();
                 let j1i = j1.to_i32().unwrap();
 
-                r_[self.ix(i, j)] = (r0_[cmp::min(self.ix(i0i, j0i), (self.size - 1) as usize)]
-                    * t0
-                    + r0_[cmp::min(self.ix(i0i, j1i), (self.size - 1) as usize)] * t1)
-                    * s0
-                    + (r0_[cmp::min(self.ix(i1i, j0i), (self.size - 1) as usize)] * t0
-                        + r0_[cmp::min(self.ix(i1i, j1i), (self.size - 1) as usize)] * t1)
-                        * s1;
+                
+                r_[self.ix(i, j)] = 
+                    (
+                        r0_[self.ix(i0i, j0i)] * t0
+                        + 
+                        r0_[self.ix(i0i, j1i)] * t1
+                    ) * s0
+                    + 
+                    (
+                        r0_[self.ix(i1i, j0i)] * t0
+                        + 
+                        r0_[self.ix(i1i, j1i)] * t1
+                    ) * s1;
+                
             }
         }
+        
+        // log_f64v(r_.iter().map(|x| x.to_f64().unwrap()).collect());
+        // log_f64v(r0_.iter().map(|x| x.to_f64().unwrap()).collect());
+
         r_ = self.set_bnd(b, r_);
+
         return r_;
     }
 

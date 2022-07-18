@@ -72,7 +72,7 @@ pub fn create_fluid(size: Option<i32>) {
     let mut tmp = FLUID_INSTANCE.lock().unwrap();
 
     // 41 mins to render
-    *tmp = fluid::Fluid::create(size.unwrap_or(0), dec!(0.1), dec!(0), dec!(0.1), 4);
+    *tmp = fluid::Fluid::create(size.unwrap_or(0), dec!(0.01), dec!(0), dec!(0.1), 4);
     // tmp.step();
     // log("initial creation log");
     // log_u32(tmp.size as u32);
@@ -113,6 +113,35 @@ pub fn fluid_add_velocity(x: Option<i32>, y: Option<i32>, vx: Option<f64>, vy: O
 #[wasm_bindgen(js_name = "fluid_get_density")]
 pub fn fluid_get_density() -> Vec<f64> {
     let tmp = FLUID_INSTANCE.lock().unwrap();
-    return tmp.density.iter().map(|v| v.to_f64().unwrap()).collect();
+    return tmp
+        .density
+        .iter()
+        .map(|v| {
+            // if v > &dec!(0.001) {
+                v.to_f64().unwrap()
+            // } else {
+                // 0f64
+            // }
+        })
+        .collect();
+    // get_density(x.unwrap(),y.unwrap()).to_f64().unwrap()
+}
+
+#[wasm_bindgen(js_name = "fluid_get_velocity")]
+pub fn fluid_get_velocity() -> Vec<f64> {
+    let tmp = FLUID_INSTANCE.lock().unwrap();
+    return tmp
+        .velx
+        .iter()
+        .map(|v| {
+            // if (v[0] + v[1]) > dec!(0.001) {
+            //     (v[0] + v[1]).to_f64().unwrap()
+            // } else {
+            //     0f64
+            // }
+            // (v[0] + v[1]).to_f64().unwrap()
+            v.to_f64().unwrap()
+        })
+        .collect();
     // get_density(x.unwrap(),y.unwrap()).to_f64().unwrap()
 }
