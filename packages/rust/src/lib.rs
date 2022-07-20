@@ -62,70 +62,52 @@ pub fn hello_world(name: Option<String>) {
 use lazy_static::lazy_static; // 1.4.0
 use std::sync::Mutex;
 
-// lazy_static! {
-//     static ref FLUID_INSTANCE: Mutex<fluid::Fluid> =
-//         Mutex::new(fluid::Fluid::create(1, dec!(0), dec!(0), dec!(0), 4,));
-// }
+lazy_static! {
+    static ref FLUID_INSTANCE: Mutex<fluid::Fluid> =
+        Mutex::new(fluid::Fluid::create(0.1f64, 0.000001f64, 0f64));
+}
 
-// #[wasm_bindgen(js_name = "create_fluid")]
-// pub fn create_fluid(size: Option<i32>) {
-//     let mut tmp = FLUID_INSTANCE.lock().unwrap();
+#[wasm_bindgen(js_name = "create_fluid")]
+pub fn create_fluid(size: Option<i32>) {
+    let mut tmp = FLUID_INSTANCE.lock().unwrap();
 
-//     // 41 mins to render
-//     *tmp = fluid::Fluid::create(size.unwrap_or(0), dec!(0.000001), dec!(0), dec!(0.1), 4);
-//     // tmp.step();
-//     // log("initial creation log");
-//     // log_u32(tmp.size as u32);
-//     // let tmp1 = Decimal::from_i32((tmp.size - 2).into()).unwrap_or(dec!(8888));
-//     // log_u32(tmp1.to_u32().unwrap_or(9999));
-//     // log("finish initial creation log");
-// }
+    // 41 mins to render
+    *tmp = fluid::Fluid::create(0.1f64, 0.000001f64, 0f64);
+    // tmp.step();
+    // log("initial creation log");
+    // log_u32(tmp.size as u32);
+    // let tmp1 = Decimal::from_i32((tmp.size - 2).into()).unwrap_or(dec!(8888));
+    // log_u32(tmp1.to_u32().unwrap_or(9999));
+    // log("finish initial creation log");
+}
 
-// #[wasm_bindgen(js_name = "fluid_step")]
-// pub fn fluid_step() {
-//     let mut tmp = FLUID_INSTANCE.lock().unwrap();
-//     tmp.step();
-// }
+#[wasm_bindgen(js_name = "fluid_step")]
+pub fn fluid_step() {
+    let mut tmp = FLUID_INSTANCE.lock().unwrap();
+    tmp.step();
+}
 
-// #[wasm_bindgen(js_name = "fluid_add_density")]
-// pub fn fluid_add_density(x: Option<i32>, y: Option<i32>, amount: Option<i32>) {
-//     let mut tmp = FLUID_INSTANCE.lock().unwrap();
-//     tmp.add_density(
-//         x.unwrap(),
-//         y.unwrap(),
-//         Decimal::from_i32(amount.unwrap()).unwrap(),
-//     );
-// }
+#[wasm_bindgen(js_name = "fluid_add_density")]
+pub fn fluid_add_density(x: Option<i32>, y: Option<i32>, amount: Option<f64>) {
+    let mut tmp = FLUID_INSTANCE.lock().unwrap();
+    tmp.addDensity(
+        x.unwrap(),
+        y.unwrap(),
+        amount.unwrap(),
+    );
+}
 
-// #[wasm_bindgen(js_name = "fluid_add_velocity")]
-// pub fn fluid_add_velocity(x: Option<i32>, y: Option<i32>, vx: Option<f64>, vy: Option<f64>) {
-//     let mut tmp = FLUID_INSTANCE.lock().unwrap();
-//     tmp.add_velocity(
-//         x.unwrap(),
-//         y.unwrap(),
-//         [
-//             Decimal::from_f64(vx.unwrap()).unwrap(),
-//             Decimal::from_f64(vy.unwrap()).unwrap(),
-//         ],
-//     );
-// }
+#[wasm_bindgen(js_name = "fluid_add_velocity")]
+pub fn fluid_add_velocity(x: Option<i32>, y: Option<i32>, vx: Option<f64>, vy: Option<f64>) {
+    let mut tmp = FLUID_INSTANCE.lock().unwrap();
+    tmp.addVelocity(x.unwrap(), y.unwrap(), vx.unwrap(), vy.unwrap());
+}
 
-// #[wasm_bindgen(js_name = "fluid_get_density")]
-// pub fn fluid_get_density() -> Vec<f64> {
-//     let tmp = FLUID_INSTANCE.lock().unwrap();
-//     return tmp
-//         .density
-//         .iter()
-//         .map(|v| {
-//             // if v > &dec!(0.001) {
-//                 v.to_f64().unwrap()
-//             // } else {
-//                 // 0f64
-//             // }
-//         })
-//         .collect();
-//     // get_density(x.unwrap(),y.unwrap()).to_f64().unwrap()
-// }
+#[wasm_bindgen(js_name = "fluid_get_density")]
+pub fn fluid_get_density() -> Vec<f64> {
+    let tmp = FLUID_INSTANCE.lock().unwrap();
+    return tmp.density.clone();
+}
 
 // #[wasm_bindgen(js_name = "fluid_get_velocity")]
 // pub fn fluid_get_velocity() -> Vec<f64> {

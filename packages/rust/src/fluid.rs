@@ -1,6 +1,6 @@
 const N:i32 = 100;
 const iter:i32 = 1;
-const SCALE:i32 = 4;
+// const SCALE:i32 = 4;
 
 fn constrain(x:i32,min:i32,max:i32) ->i32{
     if x < min {
@@ -17,14 +17,14 @@ fn IX( x_:i32, y_:i32) -> usize {
   return (x + (y * N)) as usize;
 }
 
-struct Fluid {
+pub struct Fluid {
   size:i32,
   dt:f64, //time step
   diff:f64, //diffusion amount
   visc:f64, //thickness of fluid
 
   s:Vec<f64>, //previous density
-  density:Vec<f64>,
+  pub density:Vec<f64>,
 
   Vx:Vec<f64>,
   Vy:Vec<f64>,
@@ -34,7 +34,7 @@ struct Fluid {
 
 }
 impl Fluid{
-  fn create(dt:f64, diffusion:f64,viscosity:f64) -> Fluid {
+  pub fn create(dt:f64, diffusion:f64,viscosity:f64) -> Fluid {
     return Fluid{
       size:N,
       dt : dt,
@@ -49,7 +49,7 @@ impl Fluid{
     }
   }
 
-  fn step(&mut self) {
+  pub fn step(&mut self) {
     Fluid::diffuse(1, &mut self.Vx0, &mut self.Vx, self.visc, self.dt);
     Fluid::diffuse(2, &mut self.Vy0, &mut self.Vy, self.visc, self.dt);
     
@@ -71,13 +71,13 @@ impl Fluid{
  
   }
 
-  fn addDensity(&mut self, x:i32,y:i32, amount:f64) {
+  pub fn addDensity(&mut self, x:i32,y:i32, amount:f64) {
     let index = IX(x, y);
     self.density[index] += amount;
   }
 
 
-  fn addVelocity(&mut self,x:i32,  y:i32, amountX:f64,amountY:f64) {
+  pub fn addVelocity(&mut self,x:i32,  y:i32, amountX:f64,amountY:f64) {
     let index = IX(x, y);
     self.Vx[index] += amountX;
     self.Vy[index] += amountY;
