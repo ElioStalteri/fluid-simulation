@@ -1,5 +1,5 @@
-final int Nx = 168;
-final int Ny = 105;
+final int Nx = 100;
+final int Ny = 100;
 final int iter = 1;
 final int SCALE = 4;
 
@@ -282,7 +282,7 @@ void draw() {
   
   fluid.step();
   fluid.renderD();
-  fluid.fadeD();
+  //fluid.fadeD();
   /*
   colorMode(HSB, 255);
   for (int i=0; i<Nx; i++) {
