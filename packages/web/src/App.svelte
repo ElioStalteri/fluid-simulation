@@ -6,10 +6,10 @@
     fluid_add_density,
     fluid_get_density,
     fluid_add_velocity,
-    fluid_get_velocity,
+    // fluid_get_velocity,
   } from "vite-wasm-functions";
 
-  let canvas_dim = 50;
+  let canvas_dim = 100;
 
   let height = 55;
 
@@ -39,12 +39,12 @@
     p5.mouseMoved = () => {
       // console.log(density);
       // console.log(fluid_get_velocity())
-      fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 1000);
-      fluid_add_velocity(
-        ...convertSize(p5.mouseX, p5.mouseY),
-        p5.mouseX - p5.pmouseX,
-        p5.mouseY - p5.pmouseY
-      );
+      // fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 1000);
+      // fluid_add_velocity(
+      //   ...convertSize(p5.mouseX, p5.mouseY),
+      //   p5.mouseX - p5.pmouseX,
+      //   p5.mouseY - p5.pmouseY
+      // );
       // fluid_add_velocity(
       //   ...convertSize(p5.mouseX, p5.mouseY),
       //   p5.random(-1000, 1000),
@@ -54,8 +54,7 @@
 
     p5.mouseClicked = () => {
       console.log(density);
-      console.log(fluid_get_velocity())
-      
+      // console.log(fluid_get_velocity());
     };
 
     p5.setup = () => {
@@ -65,8 +64,20 @@
       p5.frameRate(5);
     };
 
+    let t = 0;
     p5.draw = () => {
       // if(p5.random()>0.5)
+      const [cx, cy] = convertSize(0.5 * p5.width, 0.5 * p5.height);
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          fluid_add_density(cx + i, cy + j, p5.random(6000, 10000));
+        }
+      }
+      const angle = p5.noise(t) * p5.TWO_PI * 2;
+      const v = p5.Vector.fromAngle(angle);
+      v.mult(10);
+      t += 0.01;
+      fluid_add_velocity(cx, cy, v.x, v.y);
 
       fluid_step();
 
@@ -83,7 +94,7 @@
         // @ts-ignore
         const y = parseInt(i / canvas_dim);
 
-        p5.fill(d*100);
+        p5.fill(d);
         p5.rect(x * square_size[0], y * square_size[1], ...square_size);
         // console.log(x * square_size[0], y * square_size[1])
       }
