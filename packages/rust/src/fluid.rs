@@ -1,4 +1,4 @@
-const N:i32 = 100;
+const N:i32 = 150;
 const iter:i32 = 1;
 // const SCALE:i32 = 4;
 

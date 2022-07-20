@@ -9,7 +9,7 @@
     // fluid_get_velocity,
   } from "vite-wasm-functions";
 
-  let canvas_dim = 100;
+  let canvas_dim = 150;
 
   let height = 55;
 
@@ -61,23 +61,31 @@
       create_fluid(canvas_dim);
       p5.createCanvas(p5.windowWidth - 50, p5.windowHeight - 50);
       square_size = [p5.width / canvas_dim, p5.height / canvas_dim];
-      p5.frameRate(5);
+      // p5.frameRate(5);
+    };
+
+    const addSmoke = (percx, percy, t, modifyDirection) => {
+      const [cx, cy] = convertSize(percx * p5.width, percy * p5.height);
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          fluid_add_density(cx + i, cy + j, 255);
+        }
+      }
+      const angle = p5.noise(t) * p5.TWO_PI * 2;
+      const v = p5.Vector.fromAngle(angle - modifyDirection);
+      v.mult(p5.random(2, 10));
+      fluid_add_velocity(cx, cy, v.x, v.y);
     };
 
     let t = 0;
     p5.draw = () => {
       // if(p5.random()>0.5)
-      const [cx, cy] = convertSize(0.5 * p5.width, 0.5 * p5.height);
-      for (let i = -1; i <= 1; i++) {
-        for (let j = -1; j <= 1; j++) {
-          fluid_add_density(cx + i, cy + j, p5.random(6000, 10000));
-        }
-      }
-      const angle = p5.noise(t) * p5.TWO_PI * 2;
-      const v = p5.Vector.fromAngle(angle);
-      v.mult(10);
-      t += 0.01;
-      fluid_add_velocity(cx, cy, v.x, v.y);
+      addSmoke(0.5, 0.5, t, p5.random(0, p5.TWO_PI));
+      addSmoke(0.3, 0.3, t, 0);
+      addSmoke(0.3, 0.7, t, p5.PI / 2);
+      addSmoke(0.7, 0.3, t, p5.PI);
+      addSmoke(0.7, 0.7, t, (p5.PI * 3) / 4);
+      t += 0.05;
 
       fluid_step();
 

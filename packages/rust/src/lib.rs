@@ -64,7 +64,7 @@ use std::sync::Mutex;
 
 lazy_static! {
     static ref FLUID_INSTANCE: Mutex<fluid::Fluid> =
-        Mutex::new(fluid::Fluid::create(0.1f64, 0.000001f64, 0f64));
+        Mutex::new(fluid::Fluid::create(0.05f64, 0.00001f64, 0f64));
 }
 
 #[wasm_bindgen(js_name = "create_fluid")]
@@ -72,7 +72,7 @@ pub fn create_fluid(size: Option<i32>) {
     let mut tmp = FLUID_INSTANCE.lock().unwrap();
 
     // 41 mins to render
-    *tmp = fluid::Fluid::create(0.1f64, 0.000001f64, 0f64);
+    *tmp = fluid::Fluid::create(0.05f64, 0.00001f64, 0f64);
     // tmp.step();
     // log("initial creation log");
     // log_u32(tmp.size as u32);
