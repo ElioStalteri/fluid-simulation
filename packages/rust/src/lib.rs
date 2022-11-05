@@ -70,21 +70,20 @@ lazy_static! {
 #[wasm_bindgen(js_name = "create_fluid")]
 pub fn create_fluid(size: Option<i32>) {
     let mut tmp = FLUID_INSTANCE.lock().unwrap();
+    // *tmp = fluid::Fluid::create(0.05f64, 0.00001f64, 0f64);
+    *tmp = fluid::Fluid::create(0.05f64, 0.000001f64, 0.0000000000001f64);
+}
 
-    // 41 mins to render
-    *tmp = fluid::Fluid::create(0.05f64, 0.00001f64, 0f64);
-    // tmp.step();
-    // log("initial creation log");
-    // log_u32(tmp.size as u32);
-    // let tmp1 = Decimal::from_i32((tmp.size - 2).into()).unwrap_or(dec!(8888));
-    // log_u32(tmp1.to_u32().unwrap_or(9999));
-    // log("finish initial creation log");
+#[wasm_bindgen(js_name = "get_size")]
+pub fn getSize() -> i32 {
+    let tmp = FLUID_INSTANCE.lock().unwrap();
+    return tmp.size;
 }
 
 #[wasm_bindgen(js_name = "fluid_step")]
 pub fn fluid_step() {
     let mut tmp = FLUID_INSTANCE.lock().unwrap();
-    tmp.step();
+    tmp.stepNew();
 }
 
 #[wasm_bindgen(js_name = "fluid_add_density")]

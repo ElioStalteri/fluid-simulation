@@ -6,12 +6,12 @@
     fluid_add_density,
     fluid_get_density,
     fluid_add_velocity,
+    get_size,
     // fluid_get_velocity,
   } from "vite-wasm-functions";
 
   let canvas_dim = 150;
 
-  let height = 55;
 
   const sketch = (p5) => {
     let square_size = [];
@@ -58,7 +58,8 @@
     };
 
     p5.setup = () => {
-      create_fluid(canvas_dim);
+      create_fluid();
+      canvas_dim = get_size()
       p5.createCanvas(p5.windowWidth - 50, p5.windowHeight - 50);
       square_size = [p5.width / canvas_dim, p5.height / canvas_dim];
       // p5.frameRate(5);
@@ -73,7 +74,7 @@
       }
       const angle = p5.noise(t) * p5.TWO_PI * 2;
       const v = p5.Vector.fromAngle(angle - modifyDirection);
-      v.mult(p5.random(2, 10));
+      v.mult(p5.random(50, 500));
       fluid_add_velocity(cx, cy, v.x, v.y);
     };
 

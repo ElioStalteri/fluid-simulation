@@ -1,4 +1,4 @@
-const N:i32 = 150;
+const N:i32 = 220;
 const iter:i32 = 1;
 // const SCALE:i32 = 4;
 
@@ -18,7 +18,7 @@ fn IX( x_:i32, y_:i32) -> usize {
 }
 
 pub struct Fluid {
-  size:i32,
+  pub size:i32,
   dt:f64, //time step
   diff:f64, //diffusion amount
   visc:f64, //thickness of fluid
@@ -71,6 +71,60 @@ impl Fluid{
  
   }
 
+  pub fn stepNew(&mut self) {
+    Fluid::diffuse(1, &mut self.Vx0, &mut self.Vx, self.visc, self.dt);
+    Fluid::diffuse(2, &mut self.Vy0, &mut self.Vy, self.visc, self.dt);
+    
+    Fluid::project(&mut self.Vx0, &mut self.Vy0, &mut self.Vx, &mut self.Vy);
+
+
+    // Advect Vx
+    for j in 1..(N - 1) { 
+      for i in 1..(N - 1) {
+        let dtx = self.dt * ((N - 2) as f64);
+        let dty = self.dt * ((N - 2) as f64);
+        let tmp1 = dtx * self.Vx0[IX(i, j)];
+        let tmp2 = dty * self.Vy0[IX(i, j)];
+        // advect single value 
+        self.Vx[IX(i, j)] = Fluid::advectSingleValue(1,i,j, dtx, dty, tmp1, tmp2, &mut self.Vx0)
+      }
+    }
+    Fluid::set_bnd(1, &mut self.Vx);
+
+
+    // Advect Vy
+    for j in 1..(N - 1) { 
+      for i in 1..(N - 1) {
+        let dtx = self.dt * ((N - 2) as f64);
+        let dty = self.dt * ((N - 2) as f64);
+        let tmp1 = dtx * self.Vx0[IX(i, j)];
+        let tmp2 = dty * self.Vy0[IX(i, j)];
+        // advect single value 
+        self.Vy[IX(i, j)] = Fluid::advectSingleValue(1,i,j, dtx, dty, tmp1, tmp2, &mut self.Vy0)
+      }
+    }
+    Fluid::set_bnd(2, &mut self.Vy);
+
+
+    Fluid::project(&mut self.Vx, &mut self.Vy, &mut self.Vx0, &mut self.Vy0);
+    
+    Fluid::diffuse(0, &mut self.s, &mut self.density, self.diff, self.dt);
+
+
+    // Advect Density
+    for j in 1..(N - 1) { 
+      for i in 1..(N - 1) {
+        let dtx = self.dt * ((N - 2) as f64);
+        let dty = self.dt * ((N - 2) as f64);
+        let tmp1 = dtx * self.Vx[IX(i, j)];
+        let tmp2 = dty * self.Vy[IX(i, j)];
+        // advect single value 
+        self.density[IX(i, j)] = Fluid::advectSingleValue(1,i,j, dtx, dty, tmp1, tmp2, &mut self.s)
+      }
+    }
+    Fluid::set_bnd(0, &mut self.density);
+  }
+
   pub fn addDensity(&mut self, x:i32,y:i32, amount:f64) {
     let index = IX(x, y);
     self.density[index] += amount;
@@ -105,7 +159,7 @@ impl Fluid{
             )) * cRecip;
         }
       }
-      //Fluid::set_bnd(b, x);
+      // Fluid::set_bnd(b, x);
     }
   }
 
@@ -194,6 +248,53 @@ impl Fluid{
 
     Fluid::set_bnd(b, d);
   }
+
+
+
+  fn advectSingleValue(b: i32,i: i32,j: i32, dtx: f64, dty: f64, tmp1: f64, tmp2: f64, d0: &mut Vec<f64>) -> f64
+  {
+
+    let Nfloat = N as f64;
+   
+    let jfloat = j as f64;
+    let ifloat = i as f64;
+    let mut x = ifloat - tmp1; 
+    let mut y = jfloat - tmp2;
+
+    if x < 0.5f64 {
+      x = 0.5f64; 
+    }
+    if x > Nfloat + 0.5f64 {
+      x = Nfloat + 0.5f64; 
+    }
+    let i0 = x.floor(); 
+    let i1 = i0 + 1.0f64;
+    if y < 0.5f64 {
+      y = 0.5f64; 
+    }
+    if y > Nfloat + 0.5f64 {
+      y = Nfloat + 0.5f64; 
+    }
+    let j0 = y.floor();
+    let j1 = j0 + 1.0f64; 
+
+    let s1 = x - i0; 
+    let s0 = 1.0f64 - s1; 
+    let t1 = y - j0; 
+    let t0 = 1.0f64 - t1;
+
+    let i0i = i0 as i32;
+    let i1i = i1 as i32;
+    let j0i = j0 as i32;
+    let j1i = j1 as i32;
+
+    return s0 * ( t0 * d0[IX(i0i, j0i)] + t1 * d0[IX(i0i, j1i)])
+         + s1 * ( t0 * d0[IX(i1i, j0i)] + t1 * d0[IX(i1i, j1i)]);
+
+    // Fluid::set_bnd(b, d);
+  }
+
+
 
 
   fn set_bnd(b: i32, x: &mut Vec<f64>) {
