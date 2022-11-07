@@ -1,4 +1,4 @@
-const N:i32 = 220;
+const N:i32 = 200;
 const iter:i32 = 1;
 // const SCALE:i32 = 4;
 
@@ -86,23 +86,24 @@ impl Fluid{
         let tmp1 = dtx * self.Vx0[IX(i, j)];
         let tmp2 = dty * self.Vy0[IX(i, j)];
         // advect single value 
-        self.Vx[IX(i, j)] = Fluid::advectSingleValue(1,i,j, dtx, dty, tmp1, tmp2, &mut self.Vx0)
+        self.Vx[IX(i, j)] = Fluid::advectSingleValue(1,i,j, dtx, dty, tmp1, tmp2, &mut self.Vx0);
+        self.Vy[IX(i, j)] = Fluid::advectSingleValue(1,i,j, dtx, dty, tmp1, tmp2, &mut self.Vy0);
       }
     }
     Fluid::set_bnd(1, &mut self.Vx);
 
 
     // Advect Vy
-    for j in 1..(N - 1) { 
-      for i in 1..(N - 1) {
-        let dtx = self.dt * ((N - 2) as f64);
-        let dty = self.dt * ((N - 2) as f64);
-        let tmp1 = dtx * self.Vx0[IX(i, j)];
-        let tmp2 = dty * self.Vy0[IX(i, j)];
-        // advect single value 
-        self.Vy[IX(i, j)] = Fluid::advectSingleValue(1,i,j, dtx, dty, tmp1, tmp2, &mut self.Vy0)
-      }
-    }
+    // for j in 1..(N - 1) { 
+    //   for i in 1..(N - 1) {
+    //     let dtx = self.dt * ((N - 2) as f64);
+    //     let dty = self.dt * ((N - 2) as f64);
+    //     let tmp1 = dtx * self.Vx0[IX(i, j)];
+    //     let tmp2 = dty * self.Vy0[IX(i, j)];
+    //     // advect single value 
+    //     self.Vy[IX(i, j)] = Fluid::advectSingleValue(1,i,j, dtx, dty, tmp1, tmp2, &mut self.Vy0)
+    //   }
+    // }
     Fluid::set_bnd(2, &mut self.Vy);
 
 

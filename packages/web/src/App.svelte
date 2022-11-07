@@ -12,7 +12,6 @@
 
   let canvas_dim = 150;
 
-
   const sketch = (p5) => {
     let square_size = [];
     let density = [];
@@ -23,46 +22,23 @@
       ];
     }
 
-    // p5.mouseDragged = () => {
-    //   console.log(...convertSize(p5.mouseX, p5.mouseY));
-
-    // };
-
-    // p5.mouseMoved = () => {
-    //   fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 10000000);
-    //   fluid_add_velocity(...convertSize(p5.mouseX, p5.mouseY), p5.random(-10,10),p5.random(-10,10));
-    //   // setTimeout(() => {
-    //   //   console.log(density);
-    //   // });
-    // };
+    p5.mouseClicked = ()=>{
+      fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 1000);
+    }
 
     p5.mouseMoved = () => {
-      // console.log(density);
-      // console.log(fluid_get_velocity())
-      // fluid_add_density(...convertSize(p5.mouseX, p5.mouseY), 1000);
-      // fluid_add_velocity(
-      //   ...convertSize(p5.mouseX, p5.mouseY),
-      //   p5.mouseX - p5.pmouseX,
-      //   p5.mouseY - p5.pmouseY
-      // );
-      // fluid_add_velocity(
-      //   ...convertSize(p5.mouseX, p5.mouseY),
-      //   p5.random(-1000, 1000),
-      //   p5.random(-1000, 1000)
-      // );
-    };
-
-    p5.mouseClicked = () => {
-      console.log(density);
-      // console.log(fluid_get_velocity());
+      fluid_add_velocity(
+        ...convertSize(p5.mouseX, p5.mouseY),
+        p5.mouseX - p5.pmouseX,
+        p5.mouseY - p5.pmouseY
+      );
     };
 
     p5.setup = () => {
       create_fluid();
-      canvas_dim = get_size()
+      canvas_dim = get_size();
       p5.createCanvas(p5.windowWidth - 50, p5.windowHeight - 50);
       square_size = [p5.width / canvas_dim, p5.height / canvas_dim];
-      // p5.frameRate(5);
     };
 
     const addSmoke = (percx, percy, t, modifyDirection) => {
@@ -78,23 +54,27 @@
       fluid_add_velocity(cx, cy, v.x, v.y);
     };
 
-    let t = 0;
+    // let t = 0;
     p5.draw = () => {
       // if(p5.random()>0.5)
-      addSmoke(0.5, 0.5, t, p5.random(0, p5.TWO_PI));
-      addSmoke(0.3, 0.3, t, 0);
-      addSmoke(0.3, 0.7, t, p5.PI / 2);
-      addSmoke(0.7, 0.3, t, p5.PI);
-      addSmoke(0.7, 0.7, t, (p5.PI * 3) / 4);
-      t += 0.05;
-
+      // addSmoke(0.5, 0.5, t, p5.random(0, p5.TWO_PI));
+      // addSmoke(0.1, 0.1, t, 0);
+      // addSmoke(0.1, 0.9, t, p5.PI / 2);
+      // addSmoke(0.9, 0.1, t, p5.PI);
+      // addSmoke(0.9, 0.9, t, (p5.PI * 3) / 4);
+      // t += 0.05;
+      // console.time("step");
       fluid_step();
+      // console.timeEnd("step");
 
+      // console.time("getArray");
       // @ts-ignore
       density = fluid_get_density();
+      // console.timeEnd("getArray");
 
       p5.background(0);
       p5.noStroke();
+      // console.time("printArray");
       for (let i = 0; i < density.length; i++) {
         const d = density[i];
         // if(d>0)console.log(d)
@@ -107,6 +87,7 @@
         p5.rect(x * square_size[0], y * square_size[1], ...square_size);
         // console.log(x * square_size[0], y * square_size[1])
       }
+      // console.timeEnd("printArray");
 
       // p5.noLoop();
     };
